@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ChevronLeft, ExternalLink } from 'lucide-react';
-import { loadAllData } from '@/lib/loadData';
+import { ChevronLeft, ExternalLink, ChevronRight, Home } from 'lucide-react';
+import { loadAllData, getUniversityCodeFromId, getUniversityName } from '@/lib/loadData';
 
 export default function MondaiDetail() {
   const params = useParams();
@@ -13,6 +13,9 @@ export default function MondaiDetail() {
   const [hashtagData, setHashtagData] = useState([]);
   const [knowledgeData, setKnowledgeData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [universities, setUniversities] = useState([]);
+  const [universityCode, setUniversityCode] = useState('');
+  const [universityName, setUniversityName] = useState('');
 
   useEffect(() => {
     async function fetchData() {
@@ -27,6 +30,12 @@ export default function MondaiDetail() {
         
         const setumonIds = setumon.map(s => s.設問ID);
         setKnowledgeData(data.knowledge.filter(k => setumonIds.includes(k.設問ID)));
+        
+        // 大学情報を取得
+        setUniversities(data.universities);
+        const code = getUniversityCodeFromId(found.識別名, data.universities);  // ← data.universitiesを追加
+        setUniversityCode(code);
+        setUniversityName(getUniversityName(code, data.universities));
       }
       
       setLoading(false);
@@ -59,10 +68,24 @@ export default function MondaiDetail() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
       <header className="bg-white border-b shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-6">
-          <button onClick={() => router.push('/')} className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-4">
-            <ChevronLeft size={20} />
-            検索ページに戻る
-          </button>
+          {/* パンくずリスト */}
+          <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+            <button onClick={() => router.push('/')} className="hover:text-emerald-600 transition-colors flex items-center gap-1">
+              <Home size={16} />
+              検索画面
+            </button>
+            <ChevronRight size={16} className="text-gray-400" />
+            <button onClick={() => router.push(`/university/${universityCode}`)} className="hover:text-emerald-600 transition-colors">
+              {universityName}
+            </button>
+            <ChevronRight size={16} className="text-gray-400" />
+            <button onClick={() => router.push(`/university/${universityCode}/${mondaiData.年度}`)} className="hover:text-emerald-600 transition-colors">
+              {universityName}{mondaiData.年度}
+            </button>
+            <ChevronRight size={16} className="text-gray-400" />
+            <span className="text-gray-800 font-medium">{mondaiData.大問番号}</span>
+          </nav>
+          
           <h1 className="text-3xl font-bold text-gray-900">{mondaiData.大学名} {mondaiData.年度}年度 {mondaiData.大問番号}</h1>
           <p className="text-sm text-gray-600 mt-2">{mondaiData.学部} / {mondaiData.日程} / {mondaiData.方式}</p>
         </div>

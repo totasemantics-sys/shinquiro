@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Search, Hash, X, RotateCcw, ChevronUp, ChevronDown, Info, ExternalLink } from 'lucide-react';
 import { loadAllData } from '@/lib/loadData';
+import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
   const [mondai, setMondai] = useState([]);
@@ -45,6 +46,45 @@ export default function Home() {
   const [universityInput, setUniversityInput] = useState('');
   const [showUniversitySuggestions, setShowUniversitySuggestions] = useState(false);
   const universityInputRef = useRef(null);
+  const [showQuestionFormatsModal, setShowQuestionFormatsModal] = useState(false);
+  const [showPassageLevelsModal, setShowPassageLevelsModal] = useState(false);
+  const [markdownContent, setMarkdownContent] = useState('');
+  const [isLoadingMarkdown, setIsLoadingMarkdown] = useState(false);
+
+    // マークダウンを読み込む関数
+  const loadMarkdown = async (filename, setModalFunction) => {
+    setIsLoadingMarkdown(true);
+    try {
+      const response = await fetch(`/docs/${filename}`);
+      if (!response.ok) throw new Error('ファイルの読み込みに失敗しました');
+      const text = await response.text();
+      setMarkdownContent(text);
+      setModalFunction(true);
+    } catch (error) {
+      console.error('マークダウンの読み込みエラー:', error);
+      setMarkdownContent('# エラー\n\nファイルの読み込みに失敗しました。');
+      setModalFunction(true);
+    } finally {
+      setIsLoadingMarkdown(false);
+    }
+  };
+
+  // 設問形式の説明を開く
+  const openQuestionFormatsModal = () => {
+    loadMarkdown('question-formats.md', setShowQuestionFormatsModal);
+  };
+
+  // 本文レベルの説明を開く
+  const openPassageLevelsModal = () => {
+    loadMarkdown('passage-levels.md', setShowPassageLevelsModal);
+  };
+
+  // モーダルを閉じる
+  const closeMarkdownModal = () => {
+    setShowQuestionFormatsModal(false);
+    setShowPassageLevelsModal(false);
+    setMarkdownContent('');
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -182,11 +222,26 @@ export default function Home() {
     
     results.sort((a, b) => {
       switch(sortBy) {
-        case 'year-desc': return b.年度 - a.年度;
-        case 'year-asc': return a.年度 - b.年度;
-        case 'words-desc': return b.本文語数 - a.本文語数;
-        case 'words-asc': return a.本文語数 - b.本文語数;
-        default: return 0;
+        case 'year-desc': 
+          return b.年度 - a.年度;
+        case 'year-asc': 
+          return a.年度 - b.年度;
+        case 'words-desc': 
+          return b.本文語数 - a.本文語数;
+        case 'words-asc': 
+          return a.本文語数 - b.本文語数;
+        case 'level-desc': {
+          // S → A → B → C → D の順（難しい順）
+          const levelOrder = { 'S': 5, 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+          return (levelOrder[b.本文レベル] || 0) - (levelOrder[a.本文レベル] || 0);
+        }
+        case 'level-asc': {
+          // D → C → B → A → S の順（易しい順）
+          const levelOrder = { 'S': 5, 'A': 4, 'B': 3, 'C': 2, 'D': 1 };
+          return (levelOrder[a.本文レベル] || 0) - (levelOrder[b.本文レベル] || 0);
+        }
+        default: 
+          return 0;
       }
     });
     
@@ -496,6 +551,12 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+                  <button
+                    onClick={openPassageLevelsModal}
+                    className="text-emerald-600 hover:text-emerald-700 text-xs underline ml-2"
+                  >
+                    詳しい説明を見る
+                  </button>
               </div>
               <div className="flex flex-wrap gap-3">
                 {vocabLevels.map(level => (
@@ -727,7 +788,16 @@ export default function Home() {
 
             {/* 設問形式 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">設問形式(複数選択可)</label>
+              <div className="flex items-center gap-2 mb-2">
+                <label className="text-sm font-medium text-gray-700">設問形式(複数選択可)</label>
+                <button
+                  onClick={openQuestionFormatsModal}
+                  className="text-emerald-600 hover:text-emerald-700 text-xs underline flex items-center gap-1"
+                >
+                  <Info size={14} />
+                  設問形式の説明を見る
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {questionFormats.map(format => (
                   <button
@@ -845,7 +915,7 @@ export default function Home() {
             検索結果: <span className="font-bold text-emerald-600 text-lg">{filteredResults.length}</span> 件
           </p>
           <select
-            className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+            className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-900 font-medium"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
@@ -853,6 +923,8 @@ export default function Home() {
             <option value="year-asc">年度順(古い順)</option>
             <option value="words-desc">語数順(多い順)</option>
             <option value="words-asc">語数順(少ない順)</option>
+            <option value="level-desc">本文レベル順(難しい順)</option>
+            <option value="level-asc">本文レベル順(易しい順)</option>
           </select>
         </div>
 
@@ -1062,7 +1134,7 @@ export default function Home() {
 
       {/* ハッシュタグ検索モーダル */}
       {showHashtagModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-opacity-80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b">
               <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -1149,7 +1221,7 @@ export default function Home() {
 
       {/* 知識・文法検索モーダル */}
       {showKnowledgeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-opacity-80 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b">
               <h3 className="text-xl font-bold text-gray-800">知識・文法を検索</h3>
@@ -1231,6 +1303,42 @@ export default function Home() {
         </div>
       )}
 
+      {/* マークダウン説明モーダル */}
+        {(showQuestionFormatsModal || showPassageLevelsModal) && (
+          <div className="fixed inset-0 bg-opacity-80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
+              <div className="p-6 border-b flex items-center justify-between bg-emerald-50">
+                <h3 className="text-xl font-bold text-gray-800">
+                  {showQuestionFormatsModal ? '設問形式について' : '本文レベルについて'}
+                </h3>
+                <button
+                  onClick={closeMarkdownModal}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className="p-8 overflow-y-auto flex-1 markdown-content text-gray-900">
+                {isLoadingMarkdown ? (
+                  <div className="text-center py-12 text-gray-500">読み込み中...</div>
+                ) : (
+                  <ReactMarkdown>{markdownContent}</ReactMarkdown>
+                )}
+              </div>
+              
+              <div className="p-4 border-t bg-gray-50 flex justify-end">
+                <button
+                  onClick={closeMarkdownModal}
+                  className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       <footer className="bg-white border-t mt-12 py-6">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
           <p>© 2025 SHINQUIRO</p>
@@ -1300,6 +1408,68 @@ export default function Home() {
           border: none;
           border-radius: 0;
         }
+
+        /* マークダウンコンテンツのスタイル */
+        .markdown-content h1 {
+          font-size: 1.875rem;
+          font-weight: 700;
+          margin-bottom: 1.5rem;
+          padding-bottom: 0.75rem;
+          border-bottom: 3px solid #10b981;
+        }
+        .markdown-content h2 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 2px solid #10b981;
+        }
+        .markdown-content h3 {
+          font-size: 1.125rem;
+          font-weight: 600;
+          margin-top: 1.5rem;
+          margin-bottom: 0.75rem;
+        }
+        .markdown-content p {
+          margin-bottom: 1rem;
+          line-height: 1.75;
+        }
+        .markdown-content ul {
+          list-style-type: disc;
+          padding-left: 2rem;
+          margin-bottom: 1rem;
+        }
+        .markdown-content li {
+          margin-bottom: 0.5rem;
+          line-height: 1.6;
+        }
+        .markdown-content strong {
+          color: #10b981;
+          font-weight: 600;
+        }
+        .markdown-content table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 1.5rem 0;
+        }
+        .markdown-content th {
+          background-color: #f3f4f6;
+          padding: 0.75rem;
+          text-align: left;
+          font-weight: 600;
+          border: 1px solid #d1d5db;
+        }
+        .markdown-content td {
+          padding: 0.75rem;
+          border: 1px solid #d1d5db;
+        }
+        .markdown-content hr {
+          margin: 2rem 0;
+          border: none;
+          border-top: 1px solid #e5e7eb;
+        }
+
       `}</style>
     </div> 
 　  </div>
