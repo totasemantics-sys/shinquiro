@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Search, Hash, X, RotateCcw, ChevronUp, Info } from 'lucide-react';
+import { Search, Hash, X, RotateCcw, ChevronUp, ChevronDown, Info, ExternalLink } from 'lucide-react';
 import { loadAllData } from '@/lib/loadData';
 
 export default function Home() {
@@ -31,6 +31,8 @@ export default function Home() {
   const [sortBy, setSortBy] = useState('year-desc');
   const [filteredResults, setFilteredResults] = useState([]);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [expandedCards, setExpandedCards] = useState(new Set());
+  const [scrollY, setScrollY] = useState(0);
   const [showHashtagModal, setShowHashtagModal] = useState(false);
   const [hashtagSearchInput, setHashtagSearchInput] = useState('');
   const [tempSelectedHashtags, setTempSelectedHashtags] = useState([]);
@@ -39,7 +41,7 @@ export default function Home() {
   const [tempSelectedKnowledge, setTempSelectedKnowledge] = useState([]);
   const [showBunshoTooltip, setShowBunshoTooltip] = useState(false);
   const [showLevelTooltip, setShowLevelTooltip] = useState(false);
-  
+  const [displayCount, setDisplayCount] = useState(50);
   const [universityInput, setUniversityInput] = useState('');
   const [showUniversitySuggestions, setShowUniversitySuggestions] = useState(false);
   const universityInputRef = useRef(null);
@@ -70,6 +72,7 @@ export default function Home() {
 
   useEffect(() => {
     const handleScroll = () => {
+      setScrollY(window.scrollY);
       setShowScrollTop(window.scrollY > 400);
     };
     window.addEventListener('scroll', handleScroll);
@@ -187,6 +190,9 @@ export default function Home() {
       }
     });
     
+    // displayCountをリセット
+    setDisplayCount(50);
+
     setFilteredResults(results);
   }, [filters, sortBy, mondai, setumon, hashtags, knowledge]);
 
@@ -290,6 +296,67 @@ export default function Home() {
         </div>
       </header>
 
+      {/* 現在の検索条件バー（スクロール時に表示） */}
+      {scrollY > 300 && (
+        <div className="fixed top-0 left-0 right-0 bg-white border-b shadow-md z-50 animate-slide-down">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Search className="text-emerald-600 flex-shrink-0" size={20} />
+              <div className="text-sm text-gray-700 flex-1 min-w-0 overflow-hidden" style={{ maxHeight: '4.5rem', lineHeight: '1.5rem' }}>
+                <span className="font-medium">現在の検索条件: </span>
+                {filters.examTypes.length > 0 && (
+                  <span>試験区分: {filters.examTypes.join('、')} / </span>
+                )}
+                {filters.university && (
+                  <span>大学: {filters.university} / </span>
+                )}
+                {(filters.wordCountRange[0] > 0 || filters.wordCountRange[1] < 1500) && (
+                  <span>語数: {filters.wordCountRange[0] === 0 ? '下限なし' : `${filters.wordCountRange[0]}`}〜{filters.wordCountRange[1] === 1500 ? '上限なし' : `${filters.wordCountRange[1]}`}語 / </span>
+                )}
+                {filters.vocabLevels.length > 0 && (
+                  <span>レベル: {filters.vocabLevels.join('、')} / </span>
+                )}
+                {filters.genre && (
+                  <span>ジャンル: {filters.genre} / </span>
+                )}
+                {filters.hashtags.length > 0 && (
+                  <span>#{filters.hashtags.join(' #')} / </span>
+                )}
+                {(filters.bunshoJapanese !== 'any' || filters.bunshoEnglish !== 'any') && (
+                  <span>文章記述: {
+                    [
+                      filters.bunshoJapanese === 'required' ? '日本語必須' : filters.bunshoJapanese === 'excluded' ? '日本語除外' : null,
+                      filters.bunshoEnglish === 'required' ? '英語必須' : filters.bunshoEnglish === 'excluded' ? '英語除外' : null
+                    ].filter(Boolean).join('、') || 'どちらでも'
+                  } / </span>
+                )}
+                {filters.questionCategories.length > 0 && (
+                  <span>設問カテゴリ: {filters.questionCategories.join('、')} / </span>
+                )}
+                {filters.questionFormats.length > 0 && (
+                  <span>形式: {filters.questionFormats.join('、')} / </span>
+                )}
+                {filters.knowledgeGrammar.length > 0 && (
+                  <span>文法: {filters.knowledgeGrammar.join('、')} / </span>
+                )}
+                {filters.freeWord && (
+                  <span>「{filters.freeWord}」 / </span>
+                )}
+                {filters.examTypes.length === 0 && !filters.university && filters.wordCountRange[0] === 0 && filters.wordCountRange[1] === 1500 && filters.vocabLevels.length === 0 && !filters.genre && filters.hashtags.length === 0 && filters.bunshoJapanese === 'any' && filters.bunshoEnglish === 'any' && filters.questionCategories.length === 0 && filters.questionFormats.length === 0 && filters.knowledgeGrammar.length === 0 && !filters.freeWord && (
+                  <span className="text-gray-500">すべての条件</span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="ml-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 flex-shrink-0 text-sm whitespace-nowrap"
+            >
+              条件変更
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
@@ -329,7 +396,7 @@ export default function Home() {
               <label className="block text-sm font-medium text-gray-700 mb-2">大学名・試験名</label>
               <input
                 type="text"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-500"
                 placeholder="東京大学、英検1級、共通テスト..."
                 value={universityInput}
                 onChange={(e) => {
@@ -343,7 +410,7 @@ export default function Home() {
                   {filteredUniversities.map((u, idx) => (
                     <div
                       key={idx}
-                      className="px-4 py-2 hover:bg-emerald-50 cursor-pointer"
+                      className="px-4 py-2 hover:bg-emerald-50 cursor-pointer text-gray-800"
                       onClick={() => {
                         setFilters({...filters, university: u.大学名});
                         setUniversityInput(u.大学名);
@@ -364,24 +431,43 @@ export default function Home() {
                 {filters.wordCountRange[0] === 0 ? '下限なし' : `${filters.wordCountRange[0]}語`} 〜 {filters.wordCountRange[1] === 1500 ? '上限なし' : `${filters.wordCountRange[1]}語`}
               </div>
               <div className="px-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="1500"
-                  step="50"
-                  value={filters.wordCountRange[0]}
-                  onChange={(e) => setFilters({...filters, wordCountRange: [parseInt(e.target.value), filters.wordCountRange[1]]})}
-                  className="w-full"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="1500"
-                  step="50"
-                  value={filters.wordCountRange[1]}
-                  onChange={(e) => setFilters({...filters, wordCountRange: [filters.wordCountRange[0], parseInt(e.target.value)]})}
-                  className="w-full"
-                />
+                <div className="relative" style={{ height: '60px' }}>
+                  <div className="absolute w-full h-2 bg-gray-200 rounded-lg pointer-events-none" style={{ top: '29px' }} />
+                  <div 
+                    className="absolute h-2 bg-emerald-500 rounded-lg pointer-events-none"
+                    style={{
+                      top: '29px',
+                      left: `${(filters.wordCountRange[0] / 1500) * 100}%`,
+                      right: `${100 - (filters.wordCountRange[1] / 1500) * 100}%`
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min="0"
+                    max="1500"
+                    step="50"
+                    value={filters.wordCountRange[0]}
+                    onChange={(e) => setFilters({...filters, wordCountRange: [parseInt(e.target.value), filters.wordCountRange[1]]})}
+                    className="range-slider-bottom absolute w-full bg-transparent appearance-none cursor-pointer"
+                    style={{ zIndex: 2, top: '29px' }}
+                  />
+                  <input
+                    type="range"
+                    min="0"
+                    max="1500"
+                    step="50"
+                    value={filters.wordCountRange[1]}
+                    onChange={(e) => setFilters({...filters, wordCountRange: [filters.wordCountRange[0], parseInt(e.target.value)]})}
+                    className="range-slider-top absolute w-full bg-transparent appearance-none cursor-pointer"
+                    style={{ zIndex: 2, top: '29px' }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-gray-600">
+                  <div>0</div>
+                  <div>500</div>
+                  <div>1000</div>
+                  <div>1500+</div>
+                </div>
               </div>
             </div>
 
@@ -399,7 +485,7 @@ export default function Home() {
                     <Info size={16} />
                   </button>
                   {showLevelTooltip && (
-                    <div className="absolute left-6 top-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-xs w-64">
+                    <div className="absolute left-6 top-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-xs w-64 text-gray-800">
                       <div className="space-y-1">
                         <div><strong>S:</strong> 英検1級上位レベル</div>
                         <div><strong>A:</strong> 英検1級下位レベル</div>
@@ -525,7 +611,7 @@ export default function Home() {
                     <Info size={16} />
                   </button>
                   {showBunshoTooltip && (
-                    <div className="absolute left-6 top-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-xs w-72">
+                    <div className="absolute left-6 top-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-xs w-72 text-gray-800">
                       <div className="space-y-1">
                         <div>大問中の、1文以上の記述問題の有無。</div>
                         <div>(学習者が自己採点できるかどうかを判断基準にしています。)</div>
@@ -724,7 +810,7 @@ export default function Home() {
               <label className="block text-sm font-medium text-gray-700 mb-2">フリーワード検索</label>
               <input
                 type="text"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-500"
                 placeholder="キーワードを入力..."
                 value={filters.freeWord}
                 onChange={(e) => setFilters({...filters, freeWord: e.target.value})}
@@ -772,53 +858,190 @@ export default function Home() {
 
         {/* 検索結果 */}
         <div className="space-y-4">
-          {filteredResults.map((m) => (
-            <div key={m.大問ID} className="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-2xl font-bold text-gray-800">{m.大学名}</h3>
-                    <span className="text-lg text-gray-600">{m.学部}</span>
-                    <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-medium rounded">
-                      {m.試験区分}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                    <span className="font-semibold text-base text-gray-700">{m.年度}年度</span>
-                    <span>{m.日程}</span>
-                    <span>{m.方式}</span>
-                    <span className="font-medium text-gray-700">{m.大問番号}</span>
-                  </div>
-                  <div className="flex items-center gap-6 text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">本文:</span>
-                      <span className="font-semibold text-gray-800">{m.本文語数}語</span>
-                      {m.本文レベル && (
-                        <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs font-medium rounded ml-1">
-                          Lv.{m.本文レベル}
+          {filteredResults.slice(0, displayCount).map((m) => {
+            const mondaiSetumon = setumon.filter(s => s.大問ID === m.大問ID);
+            const mondaiHashtags = hashtags.filter(h => h.大問ID === m.大問ID).map(h => h.ハッシュタグ);
+            const isExpanded = expandedCards.has(m.大問ID);
+            
+            const bunshoJapaneseCount = mondaiSetumon.filter(s => s.設問カテゴリ === '文章記述(日本語)').length;
+            const bunshoEnglishCount = mondaiSetumon.filter(s => s.設問カテゴリ === '文章記述(英語)').length;
+            const totalBunsho = bunshoJapaneseCount + bunshoEnglishCount;
+            
+            return (
+              <div key={m.大問ID} className="bg-white rounded-lg shadow-md hover:shadow-lg transition">
+                <div className="p-5">
+                  {/* メイン情報エリア - PC時は横並び、スマホ時は縦並び */}
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+                    {/* 左側: 試験情報 */}
+                    <div className="flex-1 min-w-0">
+                      {/* 第1行: 試験情報（太字） */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2">
+                        <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded">
+                          {m.試験区分}
                         </span>
+                        <span className="text-xl font-bold text-gray-900">{m.大学名}</span>
+                        <span className="text-lg font-bold text-gray-900">{m.年度}年度</span>
+                        <span className="text-base font-bold text-gray-800">{m.日程}</span>
+                        <span className="text-base font-bold text-gray-800">{m.方式}</span>
+                        <span className="text-base font-bold text-gray-800">{m.学部}</span>
+                        <span className="text-base font-bold text-gray-800">{m.大問番号}</span>
+                      </div>
+
+                      {/* 第2行: 詳細情報 */}
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mb-2">
+                        <div className="flex items-center gap-1">
+                          <span className="font-semibold text-gray-900">{m.本文語数}語</span>
+                        </div>
+                        {m.本文レベル && (
+                          <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs font-medium rounded">
+                            Lv.{m.本文レベル}
+                          </span>
+                        )}
+                        <div className="flex items-center gap-1">
+                          <span className="font-semibold text-gray-900">{m.設問数}問</span>
+                          {totalBunsho > 0 && (
+                            <span className="text-gray-600 text-xs">
+                              (記述
+                              {bunshoJapaneseCount > 0 && `日${bunshoJapaneseCount}`}
+                              {bunshoJapaneseCount > 0 && bunshoEnglishCount > 0 && '・'}
+                              {bunshoEnglishCount > 0 && `英${bunshoEnglishCount}`})
+                            </span>
+                          )}
+                        </div>
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                          {m.ジャンル}
+                        </span>
+                      </div>
+
+                      {/* 第3行: ハッシュタグ */}
+                      {mondaiHashtags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {mondaiHashtags.slice(0, 6).map((tag, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-emerald-50 text-emerald-700 text-xs rounded-full">
+                              #{tag}
+                            </span>
+                          ))}
+                          {mondaiHashtags.length > 6 && (
+                            <span className="text-xs text-gray-500 self-center">+{mondaiHashtags.length - 6}</span>
+                          )}
+                        </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">設問:</span>
-                      <span className="font-semibold text-gray-800">{m.設問数}問</span>
+
+                    {/* 右側: ボタンエリア - PC時は縦並び */}
+                    <div className="flex lg:flex-col gap-2 flex-wrap lg:flex-nowrap lg:items-end">
+                      <Link 
+                        href={`/mondai/${m.識別名}`}
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
+                      >
+                        詳細を見る
+                      </Link>
+                      
+                      <a href={m.ASIN ? `https://www.amazon.co.jp/dp/${m.ASIN}` : 'https://www.amazon.co.jp/'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 text-sm font-medium inline-flex items-center gap-1 whitespace-nowrap"
+                      >
+                        <ExternalLink size={14} />
+                        Amazon
+                      </a>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 mt-3">
-                    <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded">
-                      {m.ジャンル}
-                    </span>
+
+                  {/* 設問サマリーボタン - カード下部中央 */}
+                  <div className="flex justify-center border-t pt-3">
+                    <button
+                      onClick={() => {
+                        const newExpanded = new Set(expandedCards);
+                        if (newExpanded.has(m.大問ID)) {
+                          newExpanded.delete(m.大問ID);
+                        } else {
+                          newExpanded.add(m.大問ID);
+                        }
+                        setExpandedCards(newExpanded);
+                      }}
+                      className="px-6 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-md text-sm font-medium inline-flex items-center gap-2 transition-colors"
+                    >
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp size={16} />
+                          設問サマリーを閉じる
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown size={16} />
+                          設問サマリーを見る
+                        </>
+                      )}
+                    </button>
                   </div>
+
+                  {/* 展開エリア: 設問サマリー */}
+                  {isExpanded && mondaiSetumon.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-3 py-2 text-left font-semibold text-gray-700">設問名</th>
+                              <th className="px-3 py-2 text-left font-semibold text-gray-700">設問カテゴリ</th>
+                              <th className="px-3 py-2 text-left font-semibold text-gray-700">設問形式</th>
+                              <th className="px-3 py-2 text-left font-semibold text-gray-700">知識・文法</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {mondaiSetumon.map((s) => {
+                              const setumonKnowledge = knowledge
+                                .filter(k => k.設問ID === s.設問ID)
+                                .map(k => k['知識・文法']);
+                              return (
+                                <tr key={s.設問ID} className="hover:bg-gray-50">
+                                  <td className="px-3 py-2 text-gray-800">{s.設問名}</td>
+                                  <td className="px-3 py-2 text-gray-800">{s.設問カテゴリ}</td>
+                                  <td className="px-3 py-2">
+                                    <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs">
+                                      {s.設問形式}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-gray-700 text-xs">
+                                    {setumonKnowledge.length > 0 ? setumonKnowledge.join('・') : '-'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      <div className="mt-3 text-xs text-gray-500">
+                        出典: {m.出典}
+                      </div>
+                      
+                      <div className="mt-4">
+                        <Link 
+                          href={`/mondai/${m.識別名}`}
+                          className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-medium inline-block"
+                        >
+                          詳細を見る
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <Link 
-                  href={`/mondai/${m.識別名}`}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm flex-shrink-0"
-                >
-                  詳細を見る
-                </Link>
               </div>
+            );
+          })}
+          
+          {filteredResults.length > displayCount && (
+            <div className="text-center py-6">
+              <button
+                onClick={() => setDisplayCount(prev => prev + 50)}
+                className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium text-base shadow-md"
+              >
+                さらに50件表示 (残り{filteredResults.length - displayCount}件)
+              </button>
             </div>
-          ))}
+          )}
           
           {filteredResults.length === 0 && (
             <div className="bg-white rounded-lg shadow-md p-12 text-center">
@@ -827,8 +1050,6 @@ export default function Home() {
             </div>
           )}
         </div>
-      </div>
-
       {/* スクロールトップボタン */}
       {showScrollTop && (
         <button
@@ -878,7 +1099,7 @@ export default function Home() {
                     value={hashtagSearchInput}
                     onChange={(e) => setHashtagSearchInput(e.target.value)}
                     placeholder="例: AI, 環境問題"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-500"
                   />
                 </div>
               </div>
@@ -962,7 +1183,7 @@ export default function Home() {
                     value={knowledgeSearchInput}
                     onChange={(e) => setKnowledgeSearchInput(e.target.value)}
                     placeholder="例: 関係代名詞, 不定詞"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 text-gray-900 placeholder-gray-500"
                   />
                 </div>
               </div>
@@ -1015,6 +1236,72 @@ export default function Home() {
           <p>© 2025 SHINQUIRO</p>
         </div>
       </footer>
-    </div>
+
+      <style jsx>{`
+        @keyframes slide-down {
+          from { transform: translateY(-100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-slide-down {
+          animation: slide-down 0.3s ease-out;
+        }
+        input[type="range"] {
+          -webkit-appearance: none;
+          appearance: none;
+          background: transparent;
+          cursor: pointer;
+          width: 100%;
+        }
+        input[type="range"]::-webkit-slider-track {
+          background: transparent;
+          height: 0;
+        }
+        input[type="range"]::-moz-range-track {
+          background: transparent;
+          height: 0;
+        }
+        .range-slider-top::-webkit-slider-thumb {
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          background: #10b981;
+          cursor: pointer;
+          clip-path: polygon(0% 0%, 100% 0%, 100% 65%, 50% 100%, 0% 65%);
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+          margin-top: -22px;
+        }
+        .range-slider-top::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          background: #10b981;
+          cursor: pointer;
+          clip-path: polygon(0% 0%, 100% 0%, 100% 65%, 50% 100%, 0% 65%);
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+          border: none;
+          border-radius: 0;
+        }
+        .range-slider-bottom::-webkit-slider-thumb {
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          background: #10b981;
+          cursor: pointer;
+          clip-path: polygon(50% 0%, 100% 35%, 100% 100%, 0% 100%, 0% 35%);
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+          margin-top: 10px;
+        }
+        .range-slider-bottom::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          background: #10b981;
+          cursor: pointer;
+          clip-path: polygon(50% 0%, 100% 35%, 100% 100%, 0% 100%, 0% 35%);
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+          border: none;
+          border-radius: 0;
+        }
+      `}</style>
+    </div> 
+　  </div>
   );
 }

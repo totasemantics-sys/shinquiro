@@ -37,7 +37,7 @@ export default function MondaiDetail() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
-        <div className="text-xl">読み込み中...</div>
+        <div className="text-xl text-gray-600">読み込み中...</div>
       </div>
     );
   }
@@ -46,8 +46,8 @@ export default function MondaiDetail() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl">データが見つかりません</p>
-          <button onClick={() => router.push('/')} className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md">
+          <p className="text-xl text-gray-700">データが見つかりません</p>
+          <button onClick={() => router.push('/')} className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700">
             検索ページに戻る
           </button>
         </div>
@@ -59,11 +59,11 @@ export default function MondaiDetail() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
       <header className="bg-white border-b shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-6">
-          <button onClick={() => router.push('/')} className="flex items-center gap-2 text-emerald-600 mb-4">
+          <button onClick={() => router.push('/')} className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-4">
             <ChevronLeft size={20} />
             検索ページに戻る
           </button>
-          <h1 className="text-3xl font-bold">{mondaiData.大学名} {mondaiData.年度}年度 {mondaiData.大問番号}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{mondaiData.大学名} {mondaiData.年度}年度 {mondaiData.大問番号}</h1>
           <p className="text-sm text-gray-600 mt-2">{mondaiData.学部} / {mondaiData.日程} / {mondaiData.方式}</p>
         </div>
       </header>
@@ -74,7 +74,7 @@ export default function MondaiDetail() {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-2xl font-bold mb-4">基本情報</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">基本情報</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="bg-emerald-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600">本文語数</p>
@@ -91,8 +91,8 @@ export default function MondaiDetail() {
               <p className="text-2xl font-bold text-blue-700">{mondaiData.設問数}問</p>
             </div>
             <div className="bg-teal-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600">カテゴリ</p>
-              <p className="text-lg font-bold text-teal-700">{mondaiData.カテゴリ}</p>
+              <p className="text-sm text-gray-600">ジャンル</p>
+              <p className="text-lg font-bold text-teal-700">{mondaiData.ジャンル}</p>
             </div>
           </div>
           
@@ -107,7 +107,7 @@ export default function MondaiDetail() {
 
         {hashtagData.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4">🏷️ テーマ・キーワード</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">🏷️ テーマ・キーワード</h2>
             <div className="flex flex-wrap gap-2">
               {hashtagData.map((h, idx) => (
                 <span key={idx} className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm">
@@ -120,21 +120,21 @@ export default function MondaiDetail() {
 
         {setumonData.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 className="text-xl font-bold mb-4">📋 設問構成</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">📋 設問構成</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-2 text-left">設問名</th>
-                    <th className="px-4 py-2 text-left">カテゴリ</th>
-                    <th className="px-4 py-2 text-left">形式</th>
+                    <th className="px-4 py-2 text-left font-semibold text-gray-700">設問名</th>
+                    <th className="px-4 py-2 text-left font-semibold text-gray-700">カテゴリ</th>
+                    <th className="px-4 py-2 text-left font-semibold text-gray-700">形式</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
                   {setumonData.map((s) => (
                     <tr key={s.設問ID}>
-                      <td className="px-4 py-3">{s.設問名}</td>
-                      <td className="px-4 py-3">{s.設問カテゴリ}</td>
+                      <td className="px-4 py-3 text-gray-800">{s.設問名}</td>
+                      <td className="px-4 py-3 text-gray-800">{s.設問カテゴリ}</td>
                       <td className="px-4 py-3">
                         <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs">
                           {s.設問形式}
@@ -150,7 +150,7 @@ export default function MondaiDetail() {
 
         {knowledgeData.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold mb-4">📚 必要な知識・文法</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">📚 必要な知識・文法</h2>
             <div className="flex flex-wrap gap-2">
               {[...new Set(knowledgeData.map(k => k['知識・文法']))].map((kg, idx) => (
                 <span key={idx} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-md text-sm">
