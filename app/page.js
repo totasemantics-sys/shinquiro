@@ -1004,7 +1004,7 @@ export default function Home() {
                     <div className="flex lg:flex-col gap-2 flex-wrap lg:flex-nowrap lg:items-end">
                       <Link 
                         href={`/mondai/${m.識別名}`}
-                        className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-600 text-sm font-medium whitespace-nowrap"
                       >
                         詳細を見る
                       </Link>
@@ -1012,7 +1012,7 @@ export default function Home() {
                       <a href={m.ASIN ? `https://www.amazon.co.jp/dp/${m.ASIN}` : 'https://www.amazon.co.jp/'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 text-sm font-medium inline-flex items-center gap-1 whitespace-nowrap"
+                        className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-500 text-sm font-medium inline-flex items-center gap-1 whitespace-nowrap"
                       >
                         <ExternalLink size={14} />
                         Amazon
@@ -1032,7 +1032,7 @@ export default function Home() {
                         }
                         setExpandedCards(newExpanded);
                       }}
-                      className="px-6 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-md text-sm font-medium inline-flex items-center gap-2 transition-colors"
+                      className="px-6 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md text-sm font-medium inline-flex items-center gap-2 transition-colors border-0"
                     >
                       {isExpanded ? (
                         <>
@@ -1052,7 +1052,7 @@ export default function Home() {
                   {isExpanded && mondaiSetumon.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <table className="w-full text-sm text-left">
                           <thead className="bg-gray-50">
                             <tr>
                               <th className="px-3 py-2 text-left font-semibold text-gray-700">設問名</th>
@@ -1068,15 +1068,32 @@ export default function Home() {
                                 .map(k => k['知識・文法']);
                               return (
                                 <tr key={s.設問ID} className="hover:bg-gray-50">
-                                  <td className="px-3 py-2 text-gray-800">{s.設問名}</td>
-                                  <td className="px-3 py-2 text-gray-800">{s.設問カテゴリ}</td>
-                                  <td className="px-3 py-2">
-                                    <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs">
+                                  <td className="px-3 py-3 text-gray-800">{s.設問名}</td>
+                                  <td className="px-3 py-3 text-gray-800">{s.設問カテゴリ}</td>
+                                  <td className="px-3 py-3">
+                                    <button
+                                      onClick={() => handleQuestionFormatClick(s.設問形式)}
+                                      className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs hover:bg-emerald-200 cursor-pointer"
+                                    >
                                       {s.設問形式}
-                                    </span>
+                                    </button>
                                   </td>
-                                  <td className="px-3 py-2 text-gray-700 text-xs">
-                                    {setumonKnowledge.length > 0 ? setumonKnowledge.join('・') : '-'}
+                                  <td className="px-3 py-3">
+                                    <div className="flex flex-wrap gap-1">
+                                      {setumonKnowledge.length > 0 ? (
+                                        setumonKnowledge.map((kg, idx) => (
+                                          <button
+                                            key={idx}
+                                            onClick={() => handleKnowledgeClick(kg)}
+                                            className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs hover:bg-emerald-200 cursor-pointer"
+                                          >
+                                            {kg}
+                                          </button>
+                                        ))
+                                      ) : (
+                                        <span className="text-gray-500">-</span>
+                                      )}
+                                    </div>
                                   </td>
                                 </tr>
                               );
