@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Search, Hash, X, RotateCcw, ChevronUp, ChevronDown, Info, ExternalLink } from 'lucide-react';
-import { loadAllData } from '@/lib/loadData';
+import { loadAllData, getUniversityCodeFromId } from '@/lib/loadData';
 import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
@@ -21,6 +21,7 @@ export default function Home() {
     vocabLevels: [],
     genre: '',
     hashtags: [],
+    hashtagMatchMode: 'any',
     questionCategories: [],
     questionFormats: [],
     knowledgeGrammar: [],
@@ -34,6 +35,7 @@ export default function Home() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [expandedCards, setExpandedCards] = useState(new Set());
   const [scrollY, setScrollY] = useState(0);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showHashtagModal, setShowHashtagModal] = useState(false);
   const [hashtagSearchInput, setHashtagSearchInput] = useState('');
   const [tempSelectedHashtags, setTempSelectedHashtags] = useState([]);
@@ -143,67 +145,75 @@ export default function Home() {
     if (filters.hashtags.length > 0) {
       results = results.filter(m => {
         const mondaiHashtags = hashtags.filter(h => h.大問ID === m.大問ID).map(h => h.ハッシュタグ);
-        return filters.hashtags.some(tag => mondaiHashtags.includes(tag));
-      });
-    }
-    
-    // 設問カテゴリと設問形式のフィルタリング
-    if (filters.questionCategories.length > 0 || filters.questionFormats.length > 0) {
-      results = results.filter(m => {
-        const mondaiSetumon = setumon.filter(s => s.大問ID === m.大問ID);
         
-        return mondaiSetumon.some(s => {
-          let categoryMatch = true;
-          let formatMatch = true;
+        if (filters.hashtagMatchMode === 'all') {
+          // すべてに当てはまる（AND条件）
+          return filters.hashtags.every(tag => mondaiHashtags.includes(tag));
+        } else {
+          // どれかに当てはまる（OR条件）
+          return filters.hashtags.some(tag => mondaiHashtags.includes(tag));
+        }
+      });
+    }
+    
+    // 設問カテゴリ・設問形式・知識文法の統合フィルタリング（同一設問で条件を満たす必要がある）
+      if (filters.questionCategories.length > 0 || filters.questionFormats.length > 0 || filters.knowledgeGrammar.length > 0) {
+        results = results.filter(m => {
+          const mondaiSetumon = setumon.filter(s => s.大問ID === m.大問ID);
           
-          if (filters.questionCategories.length > 0) {
-            categoryMatch = filters.questionCategories.includes(s.設問カテゴリ);
-          }
-          
-          if (filters.questionFormats.length > 0) {
-            formatMatch = filters.questionFormats.includes(s.設問形式);
-          }
-          
-          return categoryMatch && formatMatch;
+          // 各設問について条件をチェック
+          return mondaiSetumon.some(s => {
+            let categoryMatch = true;
+            let formatMatch = true;
+            let knowledgeMatch = true;
+            
+            // 設問カテゴリのチェック
+            if (filters.questionCategories.length > 0) {
+              categoryMatch = filters.questionCategories.includes(s.設問カテゴリ);
+            }
+            
+            // 設問形式のチェック
+            if (filters.questionFormats.length > 0) {
+              formatMatch = filters.questionFormats.includes(s.設問形式);
+            }
+            
+            // 知識・文法のチェック（この設問に紐づく知識・文法を取得）
+            if (filters.knowledgeGrammar.length > 0) {
+              const setumonKnowledge = knowledge
+                .filter(k => k.設問ID === s.設問ID)
+                .map(k => k['知識・文法']);
+              knowledgeMatch = filters.knowledgeGrammar.some(kg => setumonKnowledge.includes(kg));
+            }
+            
+            // 同一設問で全ての条件を満たす必要がある（AND条件）
+            return categoryMatch && formatMatch && knowledgeMatch;
+          });
         });
-      });
-    }
+      }
     
-    // 知識・文法のフィルタリング
-    if (filters.knowledgeGrammar.length > 0) {
-      results = results.filter(m => {
-        const mondaiSetumon = setumon.filter(s => s.大問ID === m.大問ID);
-        const setumonIds = mondaiSetumon.map(s => s.設問ID);
-        const mondaiKnowledge = knowledge.filter(k => setumonIds.includes(k.設問ID));
-        return filters.knowledgeGrammar.some(kg => 
-          mondaiKnowledge.some(mk => mk['知識・文法'] === kg)
-        );
-      });
-    }
-    
-    // 文章記述(日本語)のフィルタリング
+    // 文章記述(日)のフィルタリング
     if (filters.bunshoJapanese === 'required') {
       results = results.filter(m => {
         const mondaiSetumon = setumon.filter(s => s.大問ID === m.大問ID);
-        return mondaiSetumon.some(s => s.設問カテゴリ === '文章記述(日本語)');
+        return mondaiSetumon.some(s => s.設問カテゴリ === '文章記述(日)');
       });
     } else if (filters.bunshoJapanese === 'excluded') {
       results = results.filter(m => {
         const mondaiSetumon = setumon.filter(s => s.大問ID === m.大問ID);
-        return !mondaiSetumon.some(s => s.設問カテゴリ === '文章記述(日本語)');
+        return !mondaiSetumon.some(s => s.設問カテゴリ === '文章記述(日)');
       });
     }
     
-    // 文章記述(英語)のフィルタリング
+    // 文章記述(英)のフィルタリング
     if (filters.bunshoEnglish === 'required') {
       results = results.filter(m => {
         const mondaiSetumon = setumon.filter(s => s.大問ID === m.大問ID);
-        return mondaiSetumon.some(s => s.設問カテゴリ === '文章記述(英語)');
+        return mondaiSetumon.some(s => s.設問カテゴリ === '文章記述(英)');
       });
     } else if (filters.bunshoEnglish === 'excluded') {
       results = results.filter(m => {
         const mondaiSetumon = setumon.filter(s => s.大問ID === m.大問ID);
-        return !mondaiSetumon.some(s => s.設問カテゴリ === '文章記述(英語)');
+        return !mondaiSetumon.some(s => s.設問カテゴリ === '文章記述(英)');
       });
     }
     
@@ -324,10 +334,34 @@ export default function Home() {
     u.大学名.toLowerCase().includes(universityInput.toLowerCase())
   );
 
+// 設問形式クリック時の処理
+  const handleQuestionFormatClick = (format) => {
+    if (!filters.questionFormats.includes(format)) {
+      setFilters({...filters, questionFormats: [...filters.questionFormats, format]});
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // 知識・文法クリック時の処理
+  const handleKnowledgeClick = (kg) => {
+    if (!filters.knowledgeGrammar.includes(kg)) {
+      setFilters({...filters, knowledgeGrammar: [...filters.knowledgeGrammar, kg]});
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // ハッシュタグクリック時の処理
+  const handleHashtagClick = (tag) => {
+    if (!filters.hashtags.includes(tag)) {
+      setFilters({...filters, hashtags: [...filters.hashtags, tag]});
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const resetFilters = () => {
     setFilters({
       examTypes: [], university: '', wordCountRange: [0, 1500], vocabLevels: [],
-      genre: '', hashtags: [], questionCategories: [], questionFormats: [],
+      genre: '', hashtags: [], hashtagMatchMode: 'any', questionCategories: [], questionFormats: [],
       knowledgeGrammar: [], bunshoJapanese: 'any', bunshoEnglish: 'any', freeWord: ''
     });
     setUniversityInput('');
@@ -346,8 +380,8 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
       <header className="bg-white border-b border-emerald-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-800">SHINQUIRO（シンキロウ）</h1>
-          <p className="text-sm text-gray-600 mt-2">大学受験英語長文検索システム</p>
+          <h1 className="text-3xl font-bold text-gray-800">SHINQUIRO</h1>
+          <p className="text-sm text-gray-600 mt-2">シンキロウ 大学受験英語長文検索システム</p>
         </div>
       </header>
 
@@ -602,29 +636,55 @@ export default function Home() {
             </div>
 
             {/* ハッシュタグ */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                <Hash size={18} className="text-emerald-600" />
-                ハッシュタグ
-              </label>
-              
-              {filters.hashtags.length > 0 && (
-                <div className="mb-3">
-                  <div className="text-xs text-gray-600 mb-2">選択中のハッシュタグ</div>
-                  <div className="flex flex-wrap gap-2">
-                    {filters.hashtags.map(tag => (
-                      <button
-                        key={tag}
-                        onClick={() => setFilters({...filters, hashtags: filters.hashtags.filter(t => t !== tag)})}
-                        className="px-3 py-1 bg-emerald-500 text-white rounded-full text-xs flex items-center gap-1 hover:bg-emerald-600"
-                      >
-                        #{tag}
-                        <X size={14} />
-                      </button>
-                    ))}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                  <Hash size={18} className="text-emerald-600" />
+                  ハッシュタグ
+                </label>
+                
+                {filters.hashtags.length > 0 && (
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs text-gray-600">選択中のハッシュタグ</div>
+                      {filters.hashtags.length > 1 && (
+                        <div className="inline-flex rounded-lg border border-gray-300 bg-white">
+                          <button
+                            onClick={() => setFilters({...filters, hashtagMatchMode: 'any'})}
+                            className={`px-3 py-1 text-xs font-medium transition-colors rounded-l-lg ${
+                              filters.hashtagMatchMode === 'any'
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            どれかに当てはまる
+                          </button>
+                          <button
+                            onClick={() => setFilters({...filters, hashtagMatchMode: 'all'})}
+                            className={`px-3 py-1 text-xs font-medium transition-colors border-l border-gray-300 rounded-r-lg ${
+                              filters.hashtagMatchMode === 'all'
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            すべてに当てはまる
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {filters.hashtags.map(tag => (
+                        <button
+                          key={tag}
+                          onClick={() => setFilters({...filters, hashtags: filters.hashtags.filter(t => t !== tag)})}
+                          className="px-3 py-1 bg-emerald-500 text-white rounded-full text-xs flex items-center gap-1 hover:bg-emerald-600"
+                        >
+                          #{tag}
+                          <X size={14} />
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
               
               <div className="text-xs text-gray-600 mb-2">上位のハッシュタグ</div>
               <div className="flex flex-wrap gap-2 mb-3">
@@ -684,9 +744,9 @@ export default function Home() {
               </div>
               
               <div className="space-y-4">
-                {/* 文章記述(日本語) */}
+                {/* 文章記述(日) */}
                 <div>
-                  <div className="text-sm text-gray-600 mb-2">文章記述(日本語)</div>
+                  <div className="text-sm text-gray-600 mb-2">文章記述(日)</div>
                   <div className="inline-flex rounded-lg border border-gray-300 bg-white">
                     <button
                       onClick={() => setFilters({...filters, bunshoJapanese: 'required'})}
@@ -712,7 +772,7 @@ export default function Home() {
                       onClick={() => setFilters({...filters, bunshoJapanese: 'excluded'})}
                       className={`px-4 py-2 text-sm font-medium transition-colors rounded-r-lg ${
                         filters.bunshoJapanese === 'excluded'
-                          ? 'bg-red-500 text-white'
+                          ? 'bg-red-400 text-white'
                           : 'bg-white text-gray-700 hover:bg-gray-50'
                       }`}
                     >
@@ -721,9 +781,9 @@ export default function Home() {
                   </div>
                 </div>
                 
-                {/* 文章記述(英語) */}
+                {/* 文章記述(英) */}
                 <div>
-                  <div className="text-sm text-gray-600 mb-2">文章記述(英語)</div>
+                  <div className="text-sm text-gray-600 mb-2">文章記述(英)</div>
                   <div className="inline-flex rounded-lg border border-gray-300 bg-white">
                     <button
                       onClick={() => setFilters({...filters, bunshoEnglish: 'required'})}
@@ -749,7 +809,7 @@ export default function Home() {
                       onClick={() => setFilters({...filters, bunshoEnglish: 'excluded'})}
                       className={`px-4 py-2 text-sm font-medium transition-colors rounded-r-lg ${
                         filters.bunshoEnglish === 'excluded'
-                          ? 'bg-red-500 text-white'
+                          ? 'bg-red-400 text-white'
                           : 'bg-white text-gray-700 hover:bg-gray-50'
                       }`}
                     >
@@ -890,7 +950,7 @@ export default function Home() {
 
           <div className="mt-6 flex gap-3">
             <button 
-              onClick={resetFilters}
+              onClick={() => setShowResetConfirm(true)}
               className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 flex items-center gap-2"
             >
               <RotateCcw size={18} />
@@ -935,8 +995,8 @@ export default function Home() {
             const mondaiHashtags = hashtags.filter(h => h.大問ID === m.大問ID).map(h => h.ハッシュタグ);
             const isExpanded = expandedCards.has(m.大問ID);
             
-            const bunshoJapaneseCount = mondaiSetumon.filter(s => s.設問カテゴリ === '文章記述(日本語)').length;
-            const bunshoEnglishCount = mondaiSetumon.filter(s => s.設問カテゴリ === '文章記述(英語)').length;
+            const bunshoJapaneseCount = mondaiSetumon.filter(s => s.設問カテゴリ === '文章記述(日)').length;
+            const bunshoEnglishCount = mondaiSetumon.filter(s => s.設問カテゴリ === '文章記述(英)').length;
             const totalBunsho = bunshoJapaneseCount + bunshoEnglishCount;
             
             return (
@@ -945,104 +1005,133 @@ export default function Home() {
                   {/* メイン情報エリア - PC時は横並び、スマホ時は縦並び */}
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
                     {/* 左側: 試験情報 */}
-                    <div className="flex-1 min-w-0">
-                      {/* 第1行: 試験情報（太字） */}
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-2">
-                        <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded">
-                          {m.試験区分}
-                        </span>
-                        <span className="text-xl font-bold text-gray-900">{m.大学名}</span>
-                        <span className="text-lg font-bold text-gray-900">{m.年度}年度</span>
-                        <span className="text-base font-bold text-gray-800">{m.日程}</span>
-                        <span className="text-base font-bold text-gray-800">{m.方式}</span>
-                        <span className="text-base font-bold text-gray-800">{m.学部}</span>
-                        <span className="text-base font-bold text-gray-800">{m.大問番号}</span>
-                      </div>
-
-                      {/* 第2行: 詳細情報 */}
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mb-2">
-                        <div className="flex items-center gap-1">
-                          <span className="font-semibold text-gray-900">{m.本文語数}語</span>
-                        </div>
-                        {m.本文レベル && (
-                          <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-xs font-medium rounded">
-                            Lv.{m.本文レベル}
+                      <div className="flex-1 min-w-0">
+                        {/* 第1行: 試験情報（太字）+ 語数・設問数 */}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-2 mb-2">
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded">
+                            {m.試験区分}
                           </span>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <span className="font-semibold text-gray-900">{m.設問数}問</span>
-                          {totalBunsho > 0 && (
-                            <span className="text-gray-600 text-xs">
-                              (記述
-                              {bunshoJapaneseCount > 0 && `日${bunshoJapaneseCount}`}
-                              {bunshoJapaneseCount > 0 && bunshoEnglishCount > 0 && '・'}
-                              {bunshoEnglishCount > 0 && `英${bunshoEnglishCount}`})
+                          <span className="text-xl font-bold text-gray-900">{m.大学名}</span>
+                          <span className="text-lg font-bold text-gray-900">{m.年度}年度</span>
+                          <span className="text-lg font-bold text-gray-800">{m.日程}</span>
+                          <span className="text-lg font-bold text-gray-800">{m.方式}</span>
+                          <span className="text-lg font-bold text-gray-800">{m.学部}</span>
+                          <span className="text-lg font-bold text-gray-800">【{m.大問番号}】</span>
+                          
+                          {/* 語数 */}
+                          <span className="font-semibold text-gray-900">{m.本文語数}語</span>
+                          
+                          {/* 設問数 */}
+                          <div className="flex items-center gap-1">
+                            <span className="font-semibold text-gray-900">設問数:{m.設問数}問</span>
+                            {totalBunsho > 0 ? (
+                              <span className="text-gray-600 text-xs">
+                                (記述
+                                {bunshoJapaneseCount > 0 && `日${bunshoJapaneseCount}`}
+                                {bunshoJapaneseCount > 0 && bunshoEnglishCount > 0 && '・'}
+                                {bunshoEnglishCount > 0 && `英${bunshoEnglishCount}`})
+                              </span>
+                            ) : (
+                              <span className="text-gray-500 text-xs">(文章記述なし)</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 第2行: 本文レベル・ジャンル・ハッシュタグ */}
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                          {/* 本文レベル */}
+                          {m.本文レベル && (
+                            <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded">
+                              Lv.{m.本文レベル}
                             </span>
                           )}
+                          
+                          {/* ジャンル */}
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded">
+                            {m.ジャンル}
+                          </span>
+                          
+                          {/* ハッシュタグ */}
+                            {mondaiHashtags.length > 0 && (
+                              <>
+                                {mondaiHashtags
+                                  .sort((a, b) => {
+                                    const aSelected = filters.hashtags.includes(a);
+                                    const bSelected = filters.hashtags.includes(b);
+                                    if (aSelected && !bSelected) return -1;
+                                    if (!aSelected && bSelected) return 1;
+                                    return 0;
+                                  })
+                                  .slice(0, 6)
+                                  .map((tag, idx) => {
+                                    const isSelected = filters.hashtags.includes(tag);
+                                    return (
+                                      <button
+                                        key={idx}
+                                        onClick={() => handleHashtagClick(tag)}
+                                        className={`px-2 py-1 text-xs rounded-full cursor-pointer transition-colors ${
+                                          isSelected
+                                            ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                            : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                                        }`}
+                                      >
+                                        #{tag}
+                                      </button>
+                                    );
+                                  })}
+                                {mondaiHashtags.length > 6 && (
+                                  <span className="text-xs text-gray-500 self-center">+{mondaiHashtags.length - 6}</span>
+                                )}
+                              </>
+                            )}
                         </div>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                          {m.ジャンル}
-                        </span>
                       </div>
 
-                      {/* 第3行: ハッシュタグ */}
-                      {mondaiHashtags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {mondaiHashtags.slice(0, 6).map((tag, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-emerald-50 text-emerald-700 text-xs rounded-full">
-                              #{tag}
-                            </span>
-                          ))}
-                          {mondaiHashtags.length > 6 && (
-                            <span className="text-xs text-gray-500 self-center">+{mondaiHashtags.length - 6}</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 右側: ボタンエリア - PC時は縦並び */}
-                    <div className="flex lg:flex-col gap-2 flex-wrap lg:flex-nowrap lg:items-end">
-                      <Link 
-                        href={`/mondai/${m.識別名}`}
-                        className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-600 text-sm font-medium whitespace-nowrap"
-                      >
-                        詳細を見る
-                      </Link>
-                      
-                      <a href={m.ASIN ? `https://www.amazon.co.jp/dp/${m.ASIN}` : 'https://www.amazon.co.jp/'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-500 text-sm font-medium inline-flex items-center gap-1 whitespace-nowrap"
-                      >
-                        <ExternalLink size={14} />
-                        Amazon
-                      </a>
-                    </div>
+                    {/* 右側: ボタンエリア - 常に横並び */}
+                      <div className="flex gap-2 flex-wrap items-center">
+                        <Link 
+                          href={`/mondai/${m.識別名}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
+                        >
+                          大問詳細を見る
+                        </Link>
+                        
+                        <a href={m.ASIN ? `https://www.amazon.co.jp/dp/${m.ASIN}` : 'https://www.amazon.co.jp/'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-orange-400 text-white rounded-md hover:bg-orange-500 text-sm font-medium inline-flex items-center gap-1 whitespace-nowrap"
+                        >
+                          <ExternalLink size={14} />
+                          Amazon
+                        </a>
+                      </div>
                   </div>
 
                   {/* 設問サマリーボタン - カード下部中央 */}
-                  <div className="flex justify-center border-t pt-3">
-                    <button
-                      onClick={() => {
-                        const newExpanded = new Set(expandedCards);
-                        if (newExpanded.has(m.大問ID)) {
-                          newExpanded.delete(m.大問ID);
-                        } else {
-                          newExpanded.add(m.大問ID);
-                        }
-                        setExpandedCards(newExpanded);
-                      }}
-                      className="px-6 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-md text-sm font-medium inline-flex items-center gap-2 transition-colors border-0"
-                    >
+                    <div className="flex justify-center mt-2">
+                      <button
+                        onClick={() => {
+                          const newExpanded = new Set(expandedCards);
+                          if (newExpanded.has(m.大問ID)) {
+                            newExpanded.delete(m.大問ID);
+                          } else {
+                            newExpanded.add(m.大問ID);
+                          }
+                          setExpandedCards(newExpanded);
+                        }}
+                        className="px-6 py-1.5 bg-white hover:bg-emerald-100 text-emerald-700 rounded-md text-sm font-medium inline-flex items-center gap-2 transition-colors border-0"
+                      >
                       {isExpanded ? (
                         <>
                           <ChevronUp size={16} />
-                          設問サマリーを閉じる
+                          設問構成を閉じる
                         </>
                       ) : (
                         <>
                           <ChevronDown size={16} />
-                          設問サマリーを見る
+                          設問構成を見る
                         </>
                       )}
                     </button>
@@ -1050,14 +1139,14 @@ export default function Home() {
 
                   {/* 展開エリア: 設問サマリー */}
                   {isExpanded && mondaiSetumon.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="mt-3">
                       <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
+                        <table className="w-full text-sm">
                           <thead className="bg-gray-50">
                             <tr>
-                              <th className="px-3 py-2 text-left font-semibold text-gray-700">設問名</th>
-                              <th className="px-3 py-2 text-left font-semibold text-gray-700">設問カテゴリ</th>
-                              <th className="px-3 py-2 text-left font-semibold text-gray-700">設問形式</th>
+                              <th className="px-3 py-2 text-left font-semibold text-gray-700 w-20">設問名</th>
+                              <th className="px-3 py-2 text-left font-semibold text-gray-700 w-32">設問カテゴリ</th>
+                              <th className="px-3 py-2 text-left font-semibold text-gray-700 w-32">設問形式</th>
                               <th className="px-3 py-2 text-left font-semibold text-gray-700">知識・文法</th>
                             </tr>
                           </thead>
@@ -1068,28 +1157,47 @@ export default function Home() {
                                 .map(k => k['知識・文法']);
                               return (
                                 <tr key={s.設問ID} className="hover:bg-gray-50">
-                                  <td className="px-3 py-3 text-gray-800">{s.設問名}</td>
-                                  <td className="px-3 py-3 text-gray-800">{s.設問カテゴリ}</td>
-                                  <td className="px-3 py-3">
+                                  <td className="px-3 py-3 text-left text-gray-800">{s.設問名}</td>
+                                  <td className="px-3 py-3 text-left text-gray-800">{s.設問カテゴリ}</td>
+                                  <td className="px-3 py-3 text-left">
                                     <button
                                       onClick={() => handleQuestionFormatClick(s.設問形式)}
-                                      className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs hover:bg-emerald-200 cursor-pointer"
+                                      className={`px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
+                                        filters.questionFormats.includes(s.設問形式)
+                                          ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                          : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                                      }`}
                                     >
                                       {s.設問形式}
                                     </button>
                                   </td>
-                                  <td className="px-3 py-3">
-                                    <div className="flex flex-wrap gap-1">
+                                  <td className="px-3 py-3 text-left">
+                                    <div className="flex flex-wrap gap-1 justify-start">
                                       {setumonKnowledge.length > 0 ? (
-                                        setumonKnowledge.map((kg, idx) => (
-                                          <button
-                                            key={idx}
-                                            onClick={() => handleKnowledgeClick(kg)}
-                                            className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs hover:bg-emerald-200 cursor-pointer"
-                                          >
-                                            {kg}
-                                          </button>
-                                        ))
+                                        setumonKnowledge
+                                          .sort((a, b) => {
+                                            const aSelected = filters.knowledgeGrammar.includes(a);
+                                            const bSelected = filters.knowledgeGrammar.includes(b);
+                                            if (aSelected && !bSelected) return -1;
+                                            if (!aSelected && bSelected) return 1;
+                                            return 0;
+                                          })
+                                          .map((kg, idx) => {
+                                            const isSelected = filters.knowledgeGrammar.includes(kg);
+                                            return (
+                                              <button
+                                                key={idx}
+                                                onClick={() => handleKnowledgeClick(kg)}
+                                                className={`px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
+                                                  isSelected
+                                                    ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                                    : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                                                }`}
+                                              >
+                                                {kg}
+                                              </button>
+                                            );
+                                          })
                                       ) : (
                                         <span className="text-gray-500">-</span>
                                       )}
@@ -1101,21 +1209,38 @@ export default function Home() {
                           </tbody>
                         </table>
                       </div>
-                      
-                      <div className="mt-3 text-xs text-gray-500">
-                        出典: {m.出典}
+
+                      {/* 3つのボタン */}
+                        <div className="mt-4 flex flex-col md:flex-row gap-2 justify-center">
+                          <Link 
+                            href={`/mondai/${m.識別名}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium text-center"
+                          >
+                            この大問の詳細を見る
+                          </Link>
+                          
+                          <Link 
+                            href={`/university/${getUniversityCodeFromId(m.識別名, universities)}/${m.年度}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium text-center"
+                          >
+                            {m.大学名}{m.年度}の一覧を見る
+                          </Link>
+                          
+                          <Link 
+                            href={`/university/${getUniversityCodeFromId(m.識別名, universities)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium text-center"
+                          >
+                            {m.大学名}の全年度を見る
+                          </Link>
+                        </div>
                       </div>
-                      
-                      <div className="mt-4">
-                        <Link 
-                          href={`/mondai/${m.識別名}`}
-                          className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-medium inline-block"
-                        >
-                          詳細を見る
-                        </Link>
-                      </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               </div>
             );
@@ -1355,6 +1480,33 @@ export default function Home() {
             </div>
           </div>
         )}
+
+      {/* リセット確認ダイアログ */}
+        {showResetConfirm && (
+          <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-3">条件をリセット</h3>
+              <p className="text-sm text-gray-600 mb-6">すべての検索条件がリセットされます。よろしいですか？</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 font-medium"
+                >
+                  現在の条件を継続
+                </button>
+                <button
+                  onClick={() => {
+                    resetFilters();
+                    setShowResetConfirm(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium"
+                >
+                  リセットする
+                </button>
+              </div>
+            </div>
+          </div>
+        )}  
 
       <footer className="bg-white border-t mt-12 py-6">
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
