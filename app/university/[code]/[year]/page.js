@@ -35,9 +35,6 @@ export default function UniversityYearPage({ params }) {
 
   // 外側クリック検知用のref
   const filterRefs = {
-    日程: useRef(null),
-    方式: useRef(null),
-    学部: useRef(null),
     ジャンル: useRef(null),
     本文レベル: useRef(null)
   };
@@ -80,8 +77,27 @@ export default function UniversityYearPage({ params }) {
         return code === resolvedParams.code && mondaiYear === targetYear;
       });
       
-      setMondai(filtered);
-      setFilteredMondai(filtered);
+      // 各大問に文章記述数を追加
+      const enrichedMondai = filtered.map(m => {
+        // 設問データがある場合のみカウント
+        let bunshoJapanese = 0;
+        let bunshoEnglish = 0;
+        
+        if (data.setsumon && Array.isArray(data.setsumon)) {
+          const mondaiSetsumon = data.setsumon.filter(s => s.大問ID === m.大問ID);
+          bunshoJapanese = mondaiSetsumon.filter(s => s.設問カテゴリ === '文章記述(日本語)').length;
+          bunshoEnglish = mondaiSetsumon.filter(s => s.設問カテゴリ === '文章記述(英語)').length;
+        }
+        
+        return {
+          ...m,
+          文章記述日本語: bunshoJapanese,
+          文章記述英語: bunshoEnglish
+        };
+      });
+      
+      setMondai(enrichedMondai);
+      setFilteredMondai(enrichedMondai);
       setLoading(false);
     }
     fetchData();
@@ -120,13 +136,27 @@ export default function UniversityYearPage({ params }) {
 
   // フィルター処理
   useEffect(() => {
+    if (!mondai || mondai.length === 0) {
+      return;
+    }
+    
     let result = [...mondai];
     
-    Object.keys(filters).forEach(key => {
-      if (filters[key].length > 0) {
-        result = result.filter(m => filters[key].includes(m[key]));
-      }
-    });
+    if (filters.日程.length > 0) {
+      result = result.filter(m => filters.日程.includes(m.日程));
+    }
+    if (filters.方式.length > 0) {
+      result = result.filter(m => filters.方式.includes(m.方式));
+    }
+    if (filters.学部.length > 0) {
+      result = result.filter(m => filters.学部.includes(m.学部));
+    }
+    if (filters.ジャンル.length > 0) {
+      result = result.filter(m => filters.ジャンル.includes(m.ジャンル));
+    }
+    if (filters.本文レベル.length > 0) {
+      result = result.filter(m => filters.本文レベル.includes(m.本文レベル));
+    }
     
     setFilteredMondai(result);
   }, [filters, mondai]);
@@ -191,37 +221,76 @@ export default function UniversityYearPage({ params }) {
         {/* ページタイトル */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">{universityName} {resolvedParams.year}年度</h2>
-          <p className="text-sm text-gray-600">全{filteredMondai.length}件の大問</p>
+          <p className="text-sm text-gray-600">全{mondai.length}件の大問</p>
         </div>
 
-        {/* アクティブフィルター表示 */}
-        {Object.values(filters).some(f => f.length > 0) && (
-          <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-gray-700">フィルター:</span>
-              {Object.keys(filters).map(key => 
-                filters[key].map(value => (
-                  <button
-                    key={`${key}-${value}`}
-                    onClick={() => toggleFilter(key, value)}
-                    className="px-3 py-1 bg-emerald-500 text-white rounded-full text-xs flex items-center gap-1 hover:bg-emerald-600"
-                  >
-                    {key}: {value}
-                    <X size={12} />
-                  </button>
-                ))
-              )}
-              <button
-                onClick={() => setFilters({
-                  日程: [], 方式: [], 学部: [], ジャンル: [], 本文レベル: []
-                })}
-                className="text-xs text-gray-600 hover:text-gray-800 underline"
-              >
-                すべてクリア
-              </button>
+        {/* 上部フィルターエリア */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 space-y-4">
+          {/* 日程フィルター */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">日程</label>
+            <div className="flex flex-wrap gap-2">
+              {getFilterOptions('日程').map(option => (
+                <button
+                  key={option}
+                  onClick={() => toggleFilter('日程', option)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    filters.日程.length === 0 || filters.日程.includes(option)
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
             </div>
           </div>
-        )}
+
+          {/* 方式フィルター */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">方式</label>
+            <div className="flex flex-wrap gap-2">
+              {getFilterOptions('方式').map(option => (
+                <button
+                  key={option}
+                  onClick={() => toggleFilter('方式', option)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    filters.方式.length === 0 || filters.方式.includes(option)
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 学部フィルター */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">学部</label>
+            <div className="flex flex-wrap gap-2">
+              {getFilterOptions('学部').map(option => (
+                <button
+                  key={option}
+                  onClick={() => toggleFilter('学部', option)}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    filters.学部.length === 0 || filters.学部.includes(option)
+                      ? 'bg-emerald-500 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 検索結果カウント */}
+        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+          <p className="text-sm text-gray-600">検索結果: <span className="font-bold text-emerald-600 text-lg">{filteredMondai.length}</span> 件</p>
+        </div>
 
         {/* テーブル */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -229,114 +298,6 @@ export default function UniversityYearPage({ params }) {
             <table className="w-full">
               <thead className="bg-gray-50 border-b-2 border-gray-200">
                 <tr>
-                  {/* 日程 */}
-                  <th className="px-4 py-3 text-left">
-                    <div className="flex items-center justify-between gap-1">
-                      <button
-                        onClick={() => handleSort('日程')}
-                        className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
-                      >
-                        日程
-                        <SortIcon column="日程" />
-                      </button>
-                      <div className="relative" ref={filterRefs.日程}>
-                        <button
-                          onClick={() => setShowFilters(prev => ({ ...prev, 日程: !prev.日程 }))}
-                          className="p-1 hover:bg-gray-200 rounded"
-                        >
-                          <Filter size={14} className={filters.日程.length > 0 ? 'text-emerald-600' : 'text-gray-400'} />
-                        </button>
-                        {showFilters.日程 && (
-                          <div className="absolute top-full right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-10 min-w-[120px]">
-                            {getFilterOptions('日程').map(option => (
-                              <label key={option} className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 cursor-pointer text-sm text-gray-900">
-                                <input
-                                  type="checkbox"
-                                  checked={filters.日程.includes(option)}
-                                  onChange={() => toggleFilter('日程', option)}
-                                  className="rounded"
-                                />
-                                {option}
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </th>
-
-                  {/* 方式 */}
-                  <th className="px-4 py-3 text-left">
-                    <div className="flex items-center justify-between gap-1">
-                      <button
-                        onClick={() => handleSort('方式')}
-                        className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
-                      >
-                        方式
-                        <SortIcon column="方式" />
-                      </button>
-                      <div className="relative" ref={filterRefs.方式}>
-                        <button
-                          onClick={() => setShowFilters(prev => ({ ...prev, 方式: !prev.方式 }))}
-                          className="p-1 hover:bg-gray-200 rounded"
-                        >
-                          <Filter size={14} className={filters.方式.length > 0 ? 'text-emerald-600' : 'text-gray-400'} />
-                        </button>
-                        {showFilters.方式 && (
-                          <div className="absolute top-full right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-10 min-w-[120px]">
-                            {getFilterOptions('方式').map(option => (
-                              <label key={option} className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 cursor-pointer text-sm text-gray-900">
-                                <input
-                                  type="checkbox"
-                                  checked={filters.方式.includes(option)}
-                                  onChange={() => toggleFilter('方式', option)}
-                                  className="rounded"
-                                />
-                                {option}
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </th>
-
-                  {/* 学部 */}
-                  <th className="px-4 py-3 text-left">
-                    <div className="flex items-center justify-between gap-1">
-                      <button
-                        onClick={() => handleSort('学部')}
-                        className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
-                      >
-                        学部
-                        <SortIcon column="学部" />
-                      </button>
-                      <div className="relative" ref={filterRefs.学部}>
-                        <button
-                          onClick={() => setShowFilters(prev => ({ ...prev, 学部: !prev.学部 }))}
-                          className="p-1 hover:bg-gray-200 rounded"
-                        >
-                          <Filter size={14} className={filters.学部.length > 0 ? 'text-emerald-600' : 'text-gray-400'} />
-                        </button>
-                        {showFilters.学部 && (
-                          <div className="absolute top-full right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-10 min-w-[150px] max-h-[300px] overflow-y-auto">
-                            {getFilterOptions('学部').map(option => (
-                              <label key={option} className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 cursor-pointer text-sm text-gray-900">
-                                <input
-                                  type="checkbox"
-                                  checked={filters.学部.includes(option)}
-                                  onChange={() => toggleFilter('学部', option)}
-                                  className="rounded"
-                                />
-                                {option}
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </th>
-
                   {/* 大問番号 */}
                   <th className="px-4 py-3 text-left">
                     <button
@@ -437,24 +398,28 @@ export default function UniversityYearPage({ params }) {
                       onClick={() => handleSort('設問数')}
                       className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
                     >
-                      問
+                      設問
                       <SortIcon column="設問数" />
                     </button>
                   </th>
 
-                  {/* 操作 */}
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                    操作
+                  {/* 文章記述 */}
+                  <th className="px-4 py-3 text-left">
+                    <span className="text-sm font-semibold text-gray-700">文章記述</span>
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredMondai.map((m, index) => (
                   <tr key={m.大問ID} className={`hover:bg-emerald-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
-                    <td className="px-4 py-3 text-sm text-gray-900">{m.日程}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{m.方式}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{m.学部}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{m.大問番号}</td>
+                    <td className="px-4 py-3">
+                      <Link 
+                        href={`/mondai/${m.識別名}`}
+                        className="text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer"
+                      >
+                        {m.大問番号}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded whitespace-nowrap">
                         {m.ジャンル}
@@ -469,24 +434,16 @@ export default function UniversityYearPage({ params }) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900">{m.設問数}問</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-2">
-                        <Link 
-                          href={`/mondai/${m.識別名}`}
-                          className="px-3 py-1 bg-emerald-600 text-white rounded text-xs hover:bg-emerald-700 whitespace-nowrap"
-                        >
-                          詳細
-                        </Link>
-                        <a 
-                          href={m.ASIN ? `https://www.amazon.co.jp/dp/${m.ASIN}` : 'https://www.amazon.co.jp/'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1 text-orange-500 hover:text-orange-600"
-                          title="Amazonで見る"
-                        >
-                          <ExternalLink size={16} />
-                        </a>
-                      </div>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {m.文章記述日本語 === 0 && m.文章記述英語 === 0 ? (
+                        '0'
+                      ) : (
+                        <>
+                          {m.文章記述日本語 > 0 && `日${m.文章記述日本語}`}
+                          {m.文章記述日本語 > 0 && m.文章記述英語 > 0 && ' '}
+                          {m.文章記述英語 > 0 && `英${m.文章記述英語}`}
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}
