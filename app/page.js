@@ -1222,12 +1222,12 @@ export default function Home() {
                           </Link>
                           
                           <Link 
-                            href={`/university/${getUniversityCodeFromId(m.識別名, universities)}/${m.年度}`}
+                            href={`/university/${getUniversityCodeFromId(m.識別名, universities)}?year=${m.年度}&gakubu=${encodeURIComponent(m.学部)}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium text-center"
                           >
-                            {m.大学名}{m.年度}の一覧を見る
+                            {m.大学名}{m.学部}{m.年度}年度の一覧
                           </Link>
                           
                           <Link 
@@ -1236,7 +1236,7 @@ export default function Home() {
                             rel="noopener noreferrer"
                             className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium text-center"
                           >
-                            {m.大学名}の全年度を見る
+                            {m.大学名}の過去問一覧
                           </Link>
                         </div>
                       </div>
