@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ChevronRight, Home, ChevronUp, ChevronDown, Filter } from 'lucide-react';
 import { loadAllData, getUniversityName, getUniversityCodeFromId } from '@/lib/loadData';
+import Header from '@/app/components/Header';
 
 export default function UniversityPage({ params }) {
   const searchParams = useSearchParams(); 
@@ -230,12 +231,7 @@ export default function UniversityPage({ params }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
-      <header className="bg-white border-b border-emerald-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-800">SHINQUIRO（シンキロウ）</h1>
-          <p className="text-sm text-gray-600 mt-2">大学受験英語長文検索システム</p>
-        </div>
-      </header>
+      <Header />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* パンくずリスト */}

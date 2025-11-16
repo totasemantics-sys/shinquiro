@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Search, Hash, X, RotateCcw, ChevronUp, ChevronDown, Info, ExternalLink } from 'lucide-react';
 import { loadAllData, getUniversityCodeFromId } from '@/lib/loadData';
 import ReactMarkdown from 'react-markdown';
+import Header from './components/Header';
 
 export default function Home() {
   const [mondai, setMondai] = useState([]);
@@ -378,12 +379,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
-      <header className="bg-white border-b border-emerald-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-800">SHINQUIRO</h1>
-          <p className="text-sm text-gray-600 mt-2">シンキロウ 大学受験英語長文検索システム</p>
-        </div>
-      </header>
+      <Header />
 
       {/* 現在の検索条件バー（スクロール時に表示） */}
       {scrollY > 300 && (
@@ -561,59 +557,61 @@ export default function Home() {
             </div>
 
             {/* 本文レベル */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <label className="text-sm font-medium text-gray-700">本文レベル(複数選択可)</label>
-                <div className="relative">
-                  <button
-                    onClick={() => setShowLevelTooltip(!showLevelTooltip)}
-                    onMouseEnter={() => setShowLevelTooltip(true)}
-                    onMouseLeave={() => setShowLevelTooltip(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <Info size={16} />
-                  </button>
-                  {showLevelTooltip && (
-                    <div className="absolute left-6 top-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-xs w-64 text-gray-800">
-                      <div className="space-y-1">
-                        <div><strong>S:</strong> 英検1級上位レベル</div>
-                        <div><strong>A:</strong> 英検1級下位レベル</div>
-                        <div><strong>B:</strong> 英検準1級上位レベル</div>
-                        <div><strong>C:</strong> 英検準1級下位レベル</div>
-                        <div><strong>D:</strong> 英検2級レベル</div>
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="text-sm font-medium text-gray-700">本文レベル(複数選択可)</label>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowLevelTooltip(!showLevelTooltip)}
+                      onMouseEnter={() => setShowLevelTooltip(true)}
+                      onMouseLeave={() => setShowLevelTooltip(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <Info size={16} />
+                    </button>
+                    {showLevelTooltip && (
+                      <div className="absolute left-6 top-0 z-50 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-xs w-64 text-gray-800">
+                        <div className="space-y-1">
+                          <div><strong>S:</strong> 英検1級上位レベル</div>
+                          <div><strong>A:</strong> 英検1級下位レベル</div>
+                          <div><strong>B:</strong> 英検準1級上位レベル</div>
+                          <div><strong>C:</strong> 英検準1級下位レベル</div>
+                          <div><strong>D:</strong> 英検2級レベル</div>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-                  <button
-                    onClick={openPassageLevelsModal}
+                    )}
+                  </div>
+                  <Link
+                    href="/about/passage-levels"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-emerald-600 hover:text-emerald-700 text-xs underline ml-2"
                   >
                     詳しい説明を見る
-                  </button>
+                  </Link>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {vocabLevels.map(level => (
+                    <button
+                      key={level}
+                      onClick={() => {
+                        if (filters.vocabLevels.includes(level)) {
+                          setFilters({...filters, vocabLevels: filters.vocabLevels.filter(l => l !== level)});
+                        } else {
+                          setFilters({...filters, vocabLevels: [...filters.vocabLevels, level]});
+                        }
+                      }}
+                      className={`px-4 py-2 rounded-md font-medium transition ${
+                        filters.vocabLevels.includes(level)
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-3">
-                {vocabLevels.map(level => (
-                  <button
-                    key={level}
-                    onClick={() => {
-                      if (filters.vocabLevels.includes(level)) {
-                        setFilters({...filters, vocabLevels: filters.vocabLevels.filter(l => l !== level)});
-                      } else {
-                        setFilters({...filters, vocabLevels: [...filters.vocabLevels, level]});
-                      }
-                    }}
-                    className={`px-4 py-2 rounded-md font-medium transition ${
-                      filters.vocabLevels.includes(level)
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             {/* ジャンル */}
             <div>

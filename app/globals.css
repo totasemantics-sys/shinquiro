@@ -2,7 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
 }
 
 @theme inline {
@@ -23,4 +23,49 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* テキストの基本色を濃くする */
+body {
+  @apply text-gray-900;
+}
+
+/* 見出しを濃くする */
+h1, h2, h3, h4, h5, h6 {
+  @apply text-gray-900;
+}
+
+/* リストを濃くする */
+ul, ol, li {
+  @apply text-gray-900;
+}
+
+/* 段落を濃くする */
+p {
+  @apply text-gray-900;
+}
+
+/* テーブルセルを濃くする */
+td, th {
+  @apply text-gray-900;
+}
+
+/* Tailwind proseクラスの色を上書き */
+.prose {
+  @apply text-gray-900;
+}
+
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  @apply text-gray-900;
+}
+
+.prose p,
+.prose li,
+.prose td,
+.prose th {
+  @apply text-gray-900;
 }
