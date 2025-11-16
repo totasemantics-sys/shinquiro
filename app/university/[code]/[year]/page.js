@@ -395,20 +395,18 @@ export default function UniversityYearPage({ params }) {
                     </button>
                   </th>
 
-                  {/* 設問数 */}
+                  {/* 設問数/文章記述 */}
                   <th className="px-4 py-3 text-left">
-                    <button
-                      onClick={() => handleSort('設問数')}
-                      className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
-                    >
-                      設問
-                      <SortIcon column="設問数" />
-                    </button>
-                  </th>
-
-                  {/* 文章記述 */}
-                  <th className="px-4 py-3 text-left">
-                    <span className="text-sm font-semibold text-gray-700">文章記述</span>
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => handleSort('設問数')}
+                        className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
+                      >
+                        設問
+                        <SortIcon column="設問数" />
+                      </button>
+                      <span className="text-sm font-semibold text-gray-700">文章記述</span>
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -437,17 +435,22 @@ export default function UniversityYearPage({ params }) {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm font-semibold text-gray-900">{m.本文語数}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">{m.設問数}問</td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {m.文章記述日本語 === 0 && m.文章記述英語 === 0 ? (
-                        '0'
-                      ) : (
-                        <>
-                          {m.文章記述日本語 > 0 && `日${m.文章記述日本語}`}
-                          {m.文章記述日本語 > 0 && m.文章記述英語 > 0 && ' '}
-                          {m.文章記述英語 > 0 && `英${m.文章記述英語}`}
-                        </>
-                      )}
+                    {/* 設問と文章記述を縦積み */}
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1 text-sm text-gray-900">
+                        <div>{m.設問数}問</div>
+                        <div>
+                          {m.文章記述日本語 === 0 && m.文章記述英語 === 0 ? (
+                            '0'
+                          ) : (
+                            <>
+                              {m.文章記述日本語 > 0 && `日${m.文章記述日本語}`}
+                              {m.文章記述日本語 > 0 && m.文章記述英語 > 0 && ' '}
+                              {m.文章記述英語 > 0 && `英${m.文章記述英語}`}
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ))}
