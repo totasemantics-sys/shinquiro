@@ -292,6 +292,11 @@ export default function UniversityYearPage({ params }) {
           <p className="text-sm text-gray-600">検索結果: <span className="font-bold text-emerald-600 text-lg">{filteredMondai.length}</span> 件</p>
         </div>
 
+        {/* 説明テキスト */}
+        <div className="mb-4">
+          <p className="text-sm text-gray-600">大問番号をクリックすると詳細ページに移動します</p>
+        </div>
+
         {/* テーブル */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
@@ -309,38 +314,72 @@ export default function UniversityYearPage({ params }) {
                     </button>
                   </th>
 
-                  {/* ジャンル */}
+                  {/* ジャンル/本文Lv */}
                   <th className="px-4 py-3 text-left">
-                    <div className="flex items-center justify-between gap-1">
-                      <button
-                        onClick={() => handleSort('ジャンル')}
-                        className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
-                      >
-                        ジャンル
-                        <SortIcon column="ジャンル" />
-                      </button>
-                      <div className="relative" ref={filterRefs.ジャンル}>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between gap-1">
                         <button
-                          onClick={() => setShowFilters(prev => ({ ...prev, ジャンル: !prev.ジャンル }))}
-                          className="p-1 hover:bg-gray-200 rounded"
+                          onClick={() => handleSort('ジャンル')}
+                          className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
                         >
-                          <Filter size={14} className={filters.ジャンル.length > 0 ? 'text-emerald-600' : 'text-gray-400'} />
+                          ジャンル
+                          <SortIcon column="ジャンル" />
                         </button>
-                        {showFilters.ジャンル && (
-                          <div className="absolute top-full right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-10 min-w-[150px] max-h-[300px] overflow-y-auto">
-                            {getFilterOptions('ジャンル').map(option => (
-                              <label key={option} className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 cursor-pointer text-sm text-gray-900">
-                                <input
-                                  type="checkbox"
-                                  checked={filters.ジャンル.includes(option)}
-                                  onChange={() => toggleFilter('ジャンル', option)}
-                                  className="rounded"
-                                />
-                                {option}
-                              </label>
-                            ))}
-                          </div>
-                        )}
+                        <div className="relative" ref={filterRefs.ジャンル}>
+                          <button
+                            onClick={() => setShowFilters(prev => ({ ...prev, ジャンル: !prev.ジャンル }))}
+                            className="p-1 hover:bg-gray-200 rounded"
+                          >
+                            <Filter size={14} className={filters.ジャンル.length > 0 ? 'text-emerald-600' : 'text-gray-400'} />
+                          </button>
+                          {showFilters.ジャンル && (
+                            <div className="absolute top-full right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-10 min-w-[150px] max-h-[300px] overflow-y-auto">
+                              {getFilterOptions('ジャンル').map(option => (
+                                <label key={option} className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 cursor-pointer text-sm text-gray-900">
+                                  <input
+                                    type="checkbox"
+                                    checked={filters.ジャンル.includes(option)}
+                                    onChange={() => toggleFilter('ジャンル', option)}
+                                    className="rounded"
+                                  />
+                                  {option}
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between gap-1">
+                        <button
+                          onClick={() => handleSort('本文レベル')}
+                          className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
+                        >
+                          本文Lv
+                          <SortIcon column="本文レベル" />
+                        </button>
+                        <div className="relative" ref={filterRefs.本文レベル}>
+                          <button
+                            onClick={() => setShowFilters(prev => ({ ...prev, 本文レベル: !prev.本文レベル }))}
+                            className="p-1 hover:bg-gray-200 rounded"
+                          >
+                            <Filter size={14} className={filters.本文レベル.length > 0 ? 'text-emerald-600' : 'text-gray-400'} />
+                          </button>
+                          {showFilters.本文レベル && (
+                            <div className="absolute top-full right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-10 min-w-[80px]">
+                              {getFilterOptions('本文レベル').map(option => (
+                                <label key={option} className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 cursor-pointer text-sm text-gray-900">
+                                  <input
+                                    type="checkbox"
+                                    checked={filters.本文レベル.includes(option)}
+                                    onChange={() => toggleFilter('本文レベル', option)}
+                                    className="rounded"
+                                  />
+                                  {option}
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </th>
@@ -354,42 +393,6 @@ export default function UniversityYearPage({ params }) {
                       語数
                       <SortIcon column="本文語数" />
                     </button>
-                  </th>
-
-                  {/* レベル */}
-                  <th className="px-4 py-3 text-left">
-                    <div className="flex items-center justify-between gap-1">
-                      <button
-                        onClick={() => handleSort('本文レベル')}
-                        className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
-                      >
-                        Lv
-                        <SortIcon column="本文レベル" />
-                      </button>
-                      <div className="relative" ref={filterRefs.本文レベル}>
-                        <button
-                          onClick={() => setShowFilters(prev => ({ ...prev, 本文レベル: !prev.本文レベル }))}
-                          className="p-1 hover:bg-gray-200 rounded"
-                        >
-                          <Filter size={14} className={filters.本文レベル.length > 0 ? 'text-emerald-600' : 'text-gray-400'} />
-                        </button>
-                        {showFilters.本文レベル && (
-                          <div className="absolute top-full right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-10 min-w-[80px]">
-                            {getFilterOptions('本文レベル').map(option => (
-                              <label key={option} className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 cursor-pointer text-sm text-gray-900">
-                                <input
-                                  type="checkbox"
-                                  checked={filters.本文レベル.includes(option)}
-                                  onChange={() => toggleFilter('本文レベル', option)}
-                                  className="rounded"
-                                />
-                                {option}
-                              </label>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
                   </th>
 
                   {/* 設問数 */}
@@ -420,19 +423,20 @@ export default function UniversityYearPage({ params }) {
                         {m.大問番号}
                       </Link>
                     </td>
+                    {/* ジャンルと本文Lvを縦積み */}
                     <td className="px-4 py-3">
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded whitespace-nowrap">
-                        {m.ジャンル}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm font-semibold text-gray-900">{m.本文語数}語</td>
-                    <td className="px-4 py-3">
-                      {m.本文レベル && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
-                          {m.本文レベル}
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded whitespace-nowrap">
+                          {m.ジャンル}
                         </span>
-                      )}
+                        {m.本文レベル && (
+                          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
+                            {m.本文レベル}
+                          </span>
+                        )}
+                      </div>
                     </td>
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-900">{m.本文語数}</td>
                     <td className="px-4 py-3 text-sm text-gray-900">{m.設問数}問</td>
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {m.文章記述日本語 === 0 && m.文章記述英語 === 0 ? (
