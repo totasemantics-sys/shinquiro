@@ -52,6 +52,13 @@ export default function Header() {
                 長文検索
               </Link>
               <Link
+                href="/words"
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-4 py-3 text-gray-700 hover:bg-emerald-50 rounded-md transition-colors"
+              >
+                単語検索
+              </Link>
+              <Link
                 href="/about/passage-levels"
                 onClick={() => setIsMenuOpen(false)}
                 className="block px-4 py-3 text-gray-700 hover:bg-emerald-50 rounded-md transition-colors"
