@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft, ExternalLink, ChevronRight, Home } from 'lucide-react';
 import { loadAllData, getUniversityCodeFromId, getUniversityName } from '@/lib/loadData';
+import ReactMarkdown from 'react-markdown';
 import Header from '@/app/components/Header';
 
 export default function MondaiDetail() {
@@ -17,6 +18,8 @@ export default function MondaiDetail() {
   const [universities, setUniversities] = useState([]);
   const [universityCode, setUniversityCode] = useState('');
   const [universityName, setUniversityName] = useState('');
+  const [reviewContent, setReviewContent] = useState(null);
+  const [hasReview, setHasReview] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -34,9 +37,23 @@ export default function MondaiDetail() {
         
         // 大学情報を取得
         setUniversities(data.universities);
-        const code = getUniversityCodeFromId(found.識別名, data.universities);  // ← data.universitiesを追加
+        const code = getUniversityCodeFromId(found.識別名, data.universities);
         setUniversityCode(code);
         setUniversityName(getUniversityName(code, data.universities));
+
+        // 講評マークダウンを読み込む
+        try {
+          const response = await fetch(`/reviews/${found.識別名}.md`);
+          if (response.ok) {
+            const text = await response.text();
+            setReviewContent(text);
+            setHasReview(true);
+          } else {
+            setHasReview(false);
+          }
+        } catch (error) {
+          setHasReview(false);
+        }
       }
       
       setLoading(false);
@@ -68,26 +85,26 @@ export default function MondaiDetail() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
       <Header />
-        <div className="max-w-5xl mx-auto px-4 py-6">
-          {/* パンくずリスト */}
-          <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-            <button onClick={() => router.push('/')} className="hover:text-emerald-600 transition-colors flex items-center gap-1">
-              <Home size={16} />
-              検索画面
-            </button>
-            <ChevronRight size={16} className="text-gray-400" />
-            <button onClick={() => router.push(`/university/${universityCode}`)} className="hover:text-emerald-600 transition-colors">
-              {universityName}
-            </button>
-            <ChevronRight size={16} className="text-gray-400" />
-            <span className="text-gray-800 font-medium">
-              {mondaiData.年度}年度 {mondaiData.日程}{mondaiData.方式}{mondaiData.学部}{mondaiData.大問番号}
-            </span>
-          </nav>
-          
-          <h1 className="text-3xl font-bold text-gray-900">{mondaiData.大学名} {mondaiData.年度}年度　{mondaiData.学部} 【{mondaiData.大問番号}】</h1>
-          <p className="text-sm text-gray-600 mt-2"> {mondaiData.日程} / {mondaiData.方式}</p>
-        </div>
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        {/* パンくずリスト */}
+        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+          <button onClick={() => router.push('/')} className="hover:text-emerald-600 transition-colors flex items-center gap-1">
+            <Home size={16} />
+            検索画面
+          </button>
+          <ChevronRight size={16} className="text-gray-400" />
+          <button onClick={() => router.push(`/university/${universityCode}`)} className="hover:text-emerald-600 transition-colors">
+            {universityName}
+          </button>
+          <ChevronRight size={16} className="text-gray-400" />
+          <span className="text-gray-800 font-medium">
+            {mondaiData.年度}年度 {mondaiData.日程}{mondaiData.方式}{mondaiData.学部}{mondaiData.大問番号}
+          </span>
+        </nav>
+        
+        <h1 className="text-3xl font-bold text-gray-900">{mondaiData.大学名} {mondaiData.年度}年度　{mondaiData.学部} 【{mondaiData.大問番号}】</h1>
+        <p className="text-sm text-gray-600 mt-2"> {mondaiData.日程} / {mondaiData.方式}</p>
+      </div>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* 基本情報 */}
@@ -180,6 +197,7 @@ export default function MondaiDetail() {
           </div>
         </div>
 
+        {/* 設問構成 */}
         {setumonData.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">設問構成</h2>
@@ -228,7 +246,51 @@ export default function MondaiDetail() {
             </div>
           </div>
         )}
+
+        {/* 講評・ポイント */}
+        {hasReview && reviewContent && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">📝 講評・ポイント</h2>
+            <div className="prose prose-emerald max-w-none markdown-review">
+              <ReactMarkdown>{reviewContent}</ReactMarkdown>
+            </div>
+          </div>
+        )}
       </div>
+
+      <style jsx>{`
+        .markdown-review h2 {
+          font-size: 1.5rem;
+          font-weight: 700;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 2px solid #10b981;
+        }
+        .markdown-review h3 {
+          font-size: 1.125rem;
+          font-weight: 600;
+          margin-top: 1.5rem;
+          margin-bottom: 0.75rem;
+        }
+        .markdown-review p {
+          margin-bottom: 1rem;
+          line-height: 1.75;
+        }
+        .markdown-review ul {
+          list-style-type: disc;
+          padding-left: 2rem;
+          margin-bottom: 1rem;
+        }
+        .markdown-review li {
+          margin-bottom: 0.5rem;
+          line-height: 1.6;
+        }
+        .markdown-review strong {
+          color: #10b981;
+          font-weight: 600;
+        }
+      `}</style>
     </div>
   );
 }
