@@ -52,13 +52,13 @@ export default function PassageLevels() {
                     </tr>
                     <tr>
                     <td className="border border-gray-300 px-4 py-3 font-bold">D</td>
-                    <td className="border border-gray-300 px-4 py-3">英検2級（大学受験では基礎レベル）</td>
+                    <td className="border border-gray-300 px-4 py-3">~英検2級（大学受験では基礎レベル）</td>
                     </tr>
                 </tbody>
                 </table>
             </div>
             <p className="text-gray-700">
-                ※たとえば、共通テストでは後半の大問1つか2つがレベルCに分類されています。
+                ※たとえば、例年の共通テストでは後半の大問1つまたは2つがレベルCに分類されています。
             </p>
             </section> 
 
@@ -69,7 +69,7 @@ export default function PassageLevels() {
                 <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>あくまで本文の難しさであり、<strong>設問の難しさや形式、制限時間は考慮されていません。</strong></li>
                 <li>同様に、トピックの専門性も考慮されていません。</li>
-                <li>設計上、英検1級の問題に"B"がついたりすることもあります。</li>
+                <li>今後、計算式の更新で過去の分類が更新される可能性があります</li>
                 </ul>
             </div>
             </section>

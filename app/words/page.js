@@ -332,21 +332,18 @@ export default function WordSearch() {
                             
                             return (
                             <tr key={book} className={`hover:bg-gray-100 ${statusInfo.bg} border-l-4 ${statusInfo.border} transition-colors`}>
-                              <td className="px-6 py-5">
-                                <span className="text-base font-medium text-gray-800">
-                                  {book}
-                                </span>
-                              </td>
                               <td className="px-6 py-5 text-center">
                                 <div className="flex flex-col items-center gap-1">
-                                  <span className={`text-4xl font-bold ${statusInfo.color}`}>
+                                    <span className={`text-4xl font-bold ${statusInfo.color}`}>
                                     {statusInfo.symbol}
-                                  </span>
-                                  {bookData?.status !== 'none' && bookData?.number && bookData?.page && (
+                                    </span>
+                                    {bookData?.status !== 'none' && (bookData?.number || bookData?.page) && (
                                     <div className="text-xs text-gray-600 mt-1">
-                                      {bookData.number} (p.{bookData.page})
+                                        {bookData.number && <span>{bookData.number}</span>}
+                                        {bookData.number && bookData.page && <span> </span>}
+                                        {bookData.page && <span>(p.{bookData.page})</span>}
                                     </div>
-                                  )}
+                                    )}
                                 </div>
                               </td>
                               <td className="px-6 py-5">
@@ -465,11 +462,11 @@ export default function WordSearch() {
                 <table className="w-full">
                   <thead className="bg-gray-100 border-b-2 border-gray-200">
                     <tr>
-                      <th className="px-4 py-4 text-left text-sm font-semibold text-gray-700 w-48">
+                      <th className="px-4 py-4 text-left text-sm font-semibold text-gray-700 w-32">
                         単語
                       </th>
                       {compareBooks.map((book, idx) => (
-                        <th key={idx} className="px-4 py-4 text-center">
+                        <th key={idx} className="px-2 py-4 text-center">
                           <select
                             value={book}
                             onChange={(e) => handleCompareBookChange(idx, e.target.value)}
@@ -492,7 +489,7 @@ export default function WordSearch() {
                         
                         return (
                         <tr key={idx} className="hover:bg-gray-50">
-                            <td className="px-4 py-3">
+                            <td className="px-2 py-3">
                             <input
                                 type="text"
                                 value={compareWords[idx]}
@@ -502,45 +499,57 @@ export default function WordSearch() {
                             />
                             </td>
                             {compareBooks.map((book, bookIdx) => {
-                            if (!result || !result[book]) {
-                                return (
-                                <td key={bookIdx} className="px-4 py-3 text-center">
-                                    <span className="text-gray-300">-</span>
-                                </td>
-                                );
-                            }
+                                if (!result || !result[book]) {
+                                    return (
+                                    <td key={bookIdx} className="px-2 py-3 text-center">
+                                        <span className="text-gray-300">-</span>
+                                    </td>
+                                    );
+                                }
 
-                            const bookData = result[book];
-                            const statusInfo = getStatusSymbol(bookData?.status || 'none');
-                            
-                            // 関連語の場合、見出し語を取得
-                            let mainWordsForRelated = [];
-                            if (bookData?.status === 'related' && bookData?.number) {
-                                const sameNumberEntries = wordData.filter(
-                                r => r.単語帳名称 === book && r.単語帳内番号 === bookData.number
-                                );
-                                mainWordsForRelated = sameNumberEntries
-                                .filter(r => r.掲載区分 === '見出し語')
-                                .map(r => r.単語);
-                            }
-                            
-                            return (
-                                <td key={bookIdx} className={`px-4 py-3 text-center ${statusInfo.bg}`}>
+                                const bookData = result[book];
+                                const statusInfo = getStatusSymbol(bookData?.status || 'none');
+                                
+                                // 関連語の場合、見出し語を取得
+                                let mainWordsForRelated = [];
+                                if (bookData?.status === 'related' && bookData?.number) {
+                                    const sameNumberEntries = wordData.filter(
+                                    r => r.単語帳名称 === book && r.単語帳内番号 === bookData.number
+                                    );
+                                    mainWordsForRelated = sameNumberEntries
+                                    .filter(r => r.掲載区分 === '見出し語')
+                                    .map(r => r.単語);
+                                }
+                                
+                                return (
+                                    <td key={bookIdx} className={`px-2 py-3 text-center ${statusInfo.bg}`}>
                                     <div className="flex flex-col items-center gap-1">
                                         <span className={`text-3xl font-bold ${statusInfo.color}`}>
                                         {statusInfo.symbol}
                                         </span>
-                                        {bookData?.status !== 'none' && bookData.number && bookData.page && (
+                                        {bookData?.status !== 'none' && (
                                         <div className="text-xs text-gray-600 whitespace-nowrap">
-                                            {bookData.number} (p.{bookData.page})
+                                            {/* 番号・ページの表示 */}
+                                            {(bookData.number || bookData.page) && (
+                                            <>
+                                                {bookData.number && <span>{bookData.number}</span>}
+                                                {bookData.number && bookData.page && <span> </span>}
+                                                {bookData.page && <span>(p.{bookData.page})</span>}
+                                            </>
+                                            )}
+                                            
+                                            {/* 関連語の場合：見出し語を常に表示 */}
                                             {bookData?.status === 'related' && mainWordsForRelated.length > 0 && (
-                                            <> / {mainWordsForRelated.join(', ')}</>
+                                            <>
+                                                {(bookData.number || bookData.page) && <span> / </span>}
+                                                <span>{mainWordsForRelated.join(', ')}</span>
+                                            </>
                                             )}
                                         </div>
                                         )}
                                     </div>
-                                </td>
-                            );
+                                    </td>
+                                );
                             })}
                         </tr>
                         );

@@ -11,7 +11,7 @@ export default function Header({ pageTitle, pageDescription }) {
   return (
     <>
       <header className="bg-white border-b border-emerald-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {/* ロゴとページタイトル */}
             <div className="flex items-center gap-4">
