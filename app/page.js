@@ -379,7 +379,10 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
-      <Header />
+      <Header 
+        pageTitle="長文検索"
+        pageDescription="シンキロウ/分野や問題形式から英語長文を絞り込み"
+      />
 
       {/* 現在の検索条件バー（スクロール時に表示） */}
       {scrollY > 300 && (

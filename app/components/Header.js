@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 
-export default function Header() {
+export default function Header({ pageTitle, pageDescription }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -13,16 +13,26 @@ export default function Header() {
       <header className="bg-white border-b border-emerald-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            {/* ロゴ */}
-            <Link href="/" className="flex items-center">
-              <Image 
-                src="/logo.png"  // ← ロゴファイルのパス
-                alt="SHINQUIRO"
-                width={200}      // ← ロゴの幅（調整してください）
-                height={100}      // ← ロゴの高さ（調整してください）
-                priority
-              />
-            </Link>
+            {/* ロゴとページタイトル */}
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <Image 
+                  src="/logo.png"
+                  alt="SHINQUIRO"
+                  width={200}
+                  height={100}
+                  priority
+                />
+              </Link>
+              {pageTitle && (
+                <div className="border-l-2 border-gray-300 pl-4">
+                  <h1 className="text-2xl font-bold text-gray-800">{pageTitle}</h1>
+                  {pageDescription && (
+                    <p className="text-sm text-gray-600 mt-1">{pageDescription}</p>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* ハンバーガーメニューボタン */}
             <button
@@ -34,8 +44,10 @@ export default function Header() {
             </button>
           </div>
 
-          {/* サブタイトル */}
-          <p className="text-sm text-gray-600 mt-2">大学受験英語情報 SHINQUIRO</p>
+          {/* サブタイトル（ページタイトルがない場合のみ表示） */}
+          {!pageTitle && (
+            <p className="text-sm text-gray-600 mt-2">SHINQUIRO - シンキロウ</p>
+          )}
         </div>
       </header>
 

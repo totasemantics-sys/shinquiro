@@ -128,21 +128,23 @@ export default function MondaiDetail() {
                 </tr>
                 {mondaiData.本文レベル && (
                   <tr className="hover:bg-gray-50">
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50">本文レベル</th>
-                    <td className="px-4 py-3 text-gray-900 flex items-center justify-between">
-                      <span>
-                        {mondaiData.本文レベル === 'S' && 'S:英検1級上位レベル'}
-                        {mondaiData.本文レベル === 'A' && 'A:英検1級下位レベル'}
-                        {mondaiData.本文レベル === 'B' && 'B:英検準1級上位レベル'}
-                        {mondaiData.本文レベル === 'C' && 'C:英検準1級下位レベル'}
-                        {mondaiData.本文レベル === 'D' && 'D:英検2級レベル'}
-                      </span>
-                      <button
-                        onClick={() => router.push('/about/passage-levels')}
-                        className="text-xs text-emerald-600 hover:text-emerald-700 underline whitespace-nowrap ml-4"
-                      >
-                        本文レベルについて
-                      </button>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50 w-40">
+                      <div className="flex flex-col gap-2">
+                        <span>本文レベル</span>
+                        <button
+                          onClick={() => router.push('/about/passage-levels')}
+                          className="text-xs text-emerald-600 hover:text-emerald-700 underline text-left"
+                        >
+                          本文レベルとは
+                        </button>
+                      </div>
+                    </th>
+                    <td className="px-4 py-3 text-gray-900">
+                      {mondaiData.本文レベル === 'S' && 'S:英検1級上位レベル'}
+                      {mondaiData.本文レベル === 'A' && 'A:英検1級下位レベル'}
+                      {mondaiData.本文レベル === 'B' && 'B:英検準1級上位レベル'}
+                      {mondaiData.本文レベル === 'C' && 'C:英検準1級下位レベル'}
+                      {mondaiData.本文レベル === 'D' && 'D:英検2級レベル'}
                     </td>
                   </tr>
                 )}

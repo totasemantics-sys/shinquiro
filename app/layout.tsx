@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('http://localhost:3000'), // ← この行を追加
   title: {
     default: 'SHINQUIRO',
     template: '%s | SHINQUIRO'
