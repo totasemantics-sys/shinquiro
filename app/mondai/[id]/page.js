@@ -144,7 +144,7 @@ export default function MondaiDetail() {
                       {mondaiData.本文レベル === 'A' && 'A:英検1級下位レベル'}
                       {mondaiData.本文レベル === 'B' && 'B:英検準1級上位レベル'}
                       {mondaiData.本文レベル === 'C' && 'C:英検準1級下位レベル'}
-                      {mondaiData.本文レベル === 'D' && 'D:英検2級レベル'}
+                      {mondaiData.本文レベル === 'D' && 'D:〜英検2級レベル'}
                     </td>
                   </tr>
                 )}

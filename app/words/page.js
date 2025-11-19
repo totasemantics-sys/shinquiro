@@ -332,6 +332,13 @@ export default function WordSearch() {
                             
                             return (
                             <tr key={book} className={`hover:bg-gray-100 ${statusInfo.bg} border-l-4 ${statusInfo.border} transition-colors`}>
+                                {/* 単語帳名の列 */}
+                              <td className="px-6 py-5">
+                                <span className="text-base font-medium text-gray-800">
+                                {book}
+                                </span>
+                              </td>
+                              
                               <td className="px-6 py-5 text-center">
                                 <div className="flex flex-col items-center gap-1">
                                     <span className={`text-4xl font-bold ${statusInfo.color}`}>

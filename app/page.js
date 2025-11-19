@@ -579,7 +579,7 @@ export default function Home() {
                           <div><strong>A:</strong> 英検1級下位レベル</div>
                           <div><strong>B:</strong> 英検準1級上位レベル</div>
                           <div><strong>C:</strong> 英検準1級下位レベル</div>
-                          <div><strong>D:</strong> 英検2級レベル</div>
+                          <div><strong>D:</strong> 〜英検2級レベル</div>
                         </div>
                       </div>
                     )}
