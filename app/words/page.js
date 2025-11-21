@@ -73,6 +73,66 @@ export default function WordSearch() {
     }
     }, [compareWords, pageMode, shouldAutoCompare]);
 
+    useEffect(() => {
+        async function fetchData() {
+            const data = await loadWordData();
+            setWordData(data);
+            
+            const books = getAvailableBooks(data);
+            setAvailableBooks(books);
+            
+            const initialSelection = {};
+            const initialOrder = [];
+            books.forEach((book, idx) => {
+            if (idx < 3) {
+                initialSelection[book] = true;
+                initialOrder.push(book);
+            } else {
+                initialSelection[book] = false;
+            }
+            });
+            setSelectedBooks(initialSelection);
+            setSelectionOrder(initialOrder);
+            
+            setCompareBooks(books.slice(0, 3));
+            
+            setLoading(false);
+            
+            // URLパラメータから単語を受け取る処理を追加
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            const wordsParam = urlParams.get('words');
+            
+            if (mode === 'compare' && wordsParam) {
+            try {
+                const words = JSON.parse(decodeURIComponent(wordsParam));
+                const wordCount = Math.max(10, words.length);
+                
+                setPageMode('compare');
+                setCompareRowCount(wordCount);
+                
+                const newWords = Array(wordCount).fill('');
+                words.forEach((word, idx) => {
+                if (idx < wordCount) {
+                    newWords[idx] = word;
+                }
+                });
+                setCompareWords(newWords);
+                
+                // 自動で比較実行
+                setTimeout(() => {
+                const filledWords = newWords.filter(w => w.trim().length > 0);
+                const results = getWordBookMatrix(data, filledWords, books.slice(0, 3));
+                setCompareResults(results);
+                }, 100);
+            } catch (error) {
+                console.error('URLパラメータの解析に失敗:', error);
+            }
+            }
+        }
+        fetchData();
+        }, []);
+
   const handleSearch = () => {
     const word = searchInput.trim().toLowerCase();
     if (!word) return;

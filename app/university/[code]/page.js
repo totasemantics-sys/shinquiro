@@ -564,11 +564,11 @@ export default function UniversityPage({ params }) {
                     {/* ジャンルと本文Lvを縦積み */}
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-1 items-start">
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded whitespace-nowrap">
+                        <span className="px-2 py-1 bg-pink-100 text-pink-800 text-xs font-medium rounded whitespace-nowrap">
                           {m.ジャンル}
                         </span>
                         {m.本文レベル && (
-                          <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">
                             {m.本文レベル}
                           </span>
                         )}

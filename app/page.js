@@ -6,6 +6,7 @@ import { Search, Hash, X, RotateCcw, ChevronUp, ChevronDown, Info, ExternalLink 
 import { loadAllData, getUniversityCodeFromId } from '@/lib/loadData';
 import ReactMarkdown from 'react-markdown';
 import Header from './components/Header';
+import { loadKeywordData } from '@/lib/loadKeywordData';
 
 export default function Home() {
   const [mondai, setMondai] = useState([]);
@@ -53,6 +54,7 @@ export default function Home() {
   const [showPassageLevelsModal, setShowPassageLevelsModal] = useState(false);
   const [markdownContent, setMarkdownContent] = useState('');
   const [isLoadingMarkdown, setIsLoadingMarkdown] = useState(false);
+  const [keywords, setKeywords] = useState([]);
 
     // マークダウンを読み込む関数
   const loadMarkdown = async (filename, setModalFunction) => {
@@ -92,11 +94,14 @@ export default function Home() {
   useEffect(() => {
     async function fetchData() {
       const data = await loadAllData();
+      const keywordsData = await loadKeywordData();
+
       setMondai(data.mondai);
       setSetumon(data.setsumon);
       setHashtags(data.hashtags);
       setKnowledge(data.knowledge);
       setUniversities(data.universities);
+      setKeywords(keywordsData);
       setFilteredResults(data.mondai);
       setLoading(false);
     }
@@ -1042,13 +1047,13 @@ export default function Home() {
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                           {/* 本文レベル */}
                           {m.本文レベル && (
-                            <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded">
+                            <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded">
                               Lv.{m.本文レベル}
                             </span>
                           )}
                           
                           {/* ジャンル */}
-                          <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded">
+                          <span className="px-2 py-1 bg-pink-100 text-pink-800 text-xs font-medium rounded">
                             {m.ジャンル}
                           </span>
                           
@@ -1138,7 +1143,7 @@ export default function Home() {
                     </button>
                   </div>
 
-                  {/* 展開エリア: 設問サマリー */}
+                  {/* 展開エリア: 設問構成 */}
                   {isExpanded && mondaiSetumon.length > 0 && (
                     <div className="mt-3">
                       <div className="overflow-x-auto">
@@ -1148,7 +1153,7 @@ export default function Home() {
                               <th className="px-3 py-2 text-left font-semibold text-gray-700 w-20">設問名</th>
                               <th className="px-3 py-2 text-left font-semibold text-gray-700 w-32">設問カテゴリ</th>
                               <th className="px-3 py-2 text-left font-semibold text-gray-700 w-32">設問形式</th>
-                              <th className="px-3 py-2 text-left font-semibold text-gray-700">知識・文法</th>
+                              <th className="px-3 py-2 text-left font-semibold text-gray-700">知識・文法・重要単語</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
@@ -1173,35 +1178,66 @@ export default function Home() {
                                     </button>
                                   </td>
                                   <td className="px-3 py-3 text-left">
-                                    <div className="flex flex-wrap gap-1 justify-start">
-                                      {setumonKnowledge.length > 0 ? (
-                                        setumonKnowledge
-                                          .sort((a, b) => {
-                                            const aSelected = filters.knowledgeGrammar.includes(a);
-                                            const bSelected = filters.knowledgeGrammar.includes(b);
-                                            if (aSelected && !bSelected) return -1;
-                                            if (!aSelected && bSelected) return 1;
-                                            return 0;
-                                          })
-                                          .map((kg, idx) => {
-                                            const isSelected = filters.knowledgeGrammar.includes(kg);
-                                            return (
-                                              <button
-                                                key={idx}
-                                                onClick={() => handleKnowledgeClick(kg)}
-                                                className={`px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
-                                                  isSelected
-                                                    ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                                                    : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                                                }`}
+                                    <div className="flex flex-wrap gap-1 justify-start overflow-hidden max-h-7">
+                                      {(() => {
+
+                                        // 知識・文法を取得
+                                        const setumonKnowledge = knowledge
+                                          .filter(k => k.設問ID === s.設問ID)
+                                          .map(k => k['知識・文法']);
+                                        
+                                        // 設問IDが付与されている重要単語を取得
+                                        const setumonKeywords = keywords
+                                          .filter(kw => kw.設問ID && String(kw.設問ID) === String(s.設問ID))
+                                          .map(kw => kw.単語);
+                                        
+                                        const hasKnowledge = setumonKnowledge.length > 0;
+                                        const hasKeywords = setumonKeywords.length > 0;
+                                        
+                                        if (!hasKnowledge && !hasKeywords) {
+                                          return <span className="text-gray-500">-</span>;
+                                        }
+                                        
+                                        return (
+                                          <>
+                                            {/* 知識・文法（緑） */}
+                                            {setumonKnowledge
+                                              .sort((a, b) => {
+                                                const aSelected = filters.knowledgeGrammar.includes(a);
+                                                const bSelected = filters.knowledgeGrammar.includes(b);
+                                                if (aSelected && !bSelected) return -1;
+                                                if (!aSelected && bSelected) return 1;
+                                                return 0;
+                                              })
+                                              .map((kg, idx) => {
+                                                const isSelected = filters.knowledgeGrammar.includes(kg);
+                                                return (
+                                                  <button
+                                                    key={`kg-${idx}`}
+                                                    onClick={() => handleKnowledgeClick(kg)}
+                                                    className={`px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
+                                                      isSelected
+                                                        ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                                        : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                                                    }`}
+                                                  >
+                                                    {kg}
+                                                  </button>
+                                                );
+                                              })}
+                                            
+                                            {/* 重要単語（青） */}
+                                            {setumonKeywords.map((word, idx) => (
+                                              <span
+                                                key={`kw-${idx}`}
+                                                className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs"
                                               >
-                                                {kg}
-                                              </button>
-                                            );
-                                          })
-                                      ) : (
-                                        <span className="text-gray-500">-</span>
-                                      )}
+                                                {word}
+                                              </span>
+                                            ))}
+                                          </>
+                                        );
+                                      })()}
                                     </div>
                                   </td>
                                 </tr>
