@@ -69,6 +69,7 @@ export default function PassageLevels() {
                 <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>あくまで本文の難しさであり、<strong>設問の難しさや形式、制限時間は考慮されていません。</strong></li>
                 <li>同様に、トピックの専門性も考慮されていません。</li>
+                <li>物語文など、人物の発言が多い文章は低めの数値が出る傾向があります</li>
                 <li>今後、計算式の更新で過去の分類が更新される可能性があります</li>
                 </ul>
             </div>
@@ -94,7 +95,7 @@ export default function PassageLevels() {
               で、FK_Gradeが英検レベル判別の<strong>最も強力な指標</strong>（η² = 0.820）であることを確認しています。
             </p>
 
-            <h3 className="text-xl font-bold text-gray-900 mb-3 mt-6">2. 中難度語彙割合</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-3 mt-6">2. 中難度語彙割合(10K-20K)</h3>
             <p className="mb-4">
               COCAベースで頻度ランク10,000〜20,000位にあたる語彙が文章全体に占める割合(タイプベース)です。
             </p>

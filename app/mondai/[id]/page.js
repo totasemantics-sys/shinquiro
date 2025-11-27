@@ -345,7 +345,7 @@ export default function MondaiDetail() {
                 </div>
                 
                 <div className="space-y-6 max-w-5xl">
-                  {['豪傑', '上級', '標準', '基礎'].map(level => {
+                  {['修練', '上級', '標準', '基礎'].map(level => {
                     const levelKeywords = keywordData.filter(k => k.レベル === level);
                     if (levelKeywords.length === 0) return null;
                     
@@ -353,10 +353,10 @@ export default function MondaiDetail() {
                       <div key={level}>
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="text-lg font-semibold text-gray-800">
-                            {level === '豪傑' && '⭐⭐⭐⭐ 豪傑'}
-                            {level === '上級' && '⭐⭐⭐ 上級'}
-                            {level === '標準' && '⭐⭐ 標準'}
-                            {level === '基礎' && '⭐ 基礎'}
+                            {level === '修練' && '🚀 修練'}
+                            {level === '上級' && '🔬 上級'}
+                            {level === '標準' && '🖋️ 標準'}
+                            {level === '基礎' && '📘 基礎'}
                             <span className="text-sm text-gray-500 ml-2">({levelKeywords.length}語)</span>
                           </h3>
                           <div className="flex gap-2">
@@ -422,7 +422,7 @@ export default function MondaiDetail() {
               <div className="text-center py-8">
                 <h3 className="text-lg font-semibold text-gray-800 mb-6">学習するレベルを選択</h3>
                 <div className="space-y-3 max-w-md mx-auto">
-                  {['豪傑', '上級', '標準', '基礎'].map(level => {
+                  {['修練', '上級', '標準', '基礎'].map(level => {
                     const count = keywordData.filter(k => k.レベル === level).length;
                     const isDisabled = count === 0;
                     const isSelected = selectedLevels.includes(level);
@@ -448,10 +448,10 @@ export default function MondaiDetail() {
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-medium">
-                            {level === '豪傑' && '⭐⭐⭐⭐ 豪傑'}
-                            {level === '上級' && '⭐⭐⭐ 上級'}
-                            {level === '標準' && '⭐⭐ 標準'}
-                            {level === '基礎' && '⭐ 基礎'}
+                            {level === '修練' && '🚀 修練'}
+                            {level === '上級' && '🔬 上級'}
+                            {level === '標準' && '🖋️ 標準'}
+                            {level === '基礎' && '📘 基礎'}
                           </span>
                           <span className="text-sm">({count}語)</span>
                         </div>
@@ -500,10 +500,10 @@ export default function MondaiDetail() {
                 </div>
 
                 <div className="text-lg text-gray-600 mb-8">
-                  {shuffledKeywords[currentKeywordIndex].レベル === '豪傑' && '⭐⭐⭐⭐ 豪傑'}
-                  {shuffledKeywords[currentKeywordIndex].レベル === '上級' && '⭐⭐⭐ 上級'}
-                  {shuffledKeywords[currentKeywordIndex].レベル === '標準' && '⭐⭐ 標準'}
-                  {shuffledKeywords[currentKeywordIndex].レベル === '基礎' && '⭐ 基礎'}
+                  {shuffledKeywords[currentKeywordIndex].レベル === '修練' && '🚀 修練'}
+                  {shuffledKeywords[currentKeywordIndex].レベル === '上級' && '🔬 上級'}
+                  {shuffledKeywords[currentKeywordIndex].レベル === '標準' && '🖋️ 標準'}
+                  {shuffledKeywords[currentKeywordIndex].レベル === '基礎' && '📘 基礎'}
                 </div>
 
                 <div className="text-2xl text-gray-500 mb-12">
@@ -656,10 +656,10 @@ export default function MondaiDetail() {
                             </span>
                             <span className="flex-1">{answer.word}</span>
                             <span className="text-sm">
-                              {answer.level === '豪傑' && '⭐⭐⭐⭐'}
-                              {answer.level === '上級' && '⭐⭐⭐'}
-                              {answer.level === '標準' && '⭐⭐'}
-                              {answer.level === '基礎' && '⭐'}
+                              {answer.level === '修練' && '🚀'}
+                              {answer.level === '上級' && '🔬'}
+                              {answer.level === '標準' && '🖋️'}
+                              {answer.level === '基礎' && '📘'}
                             </span>
                           </button>
                         );
@@ -720,10 +720,10 @@ export default function MondaiDetail() {
                             </span>
                             <span className="flex-1">{answer.word}</span>
                             <span className="text-sm">
-                              {answer.level === '豪傑' && '⭐⭐⭐⭐'}
-                              {answer.level === '上級' && '⭐⭐⭐'}
-                              {answer.level === '標準' && '⭐⭐'}
-                              {answer.level === '基礎' && '⭐'}
+                              {answer.level === '修練' && '🚀'}
+                              {answer.level === '上級' && '🔬'}
+                              {answer.level === '標準' && '🖋️'}
+                              {answer.level === '基礎' && '📘'}
                             </span>
                           </button>
                         );

@@ -26,20 +26,23 @@ export default function UniversityPage({ params }) {
     方式: [],
     学部: [],
     ジャンル: [],
-    本文レベル: []
+    本文レベル: [],
+    大問番号: [] 
   });
   
   const [showFilters, setShowFilters] = useState({
     年度: false,
     ジャンル: false,
-    本文レベル: false
+    本文レベル: false,
+    大問番号: false
   });
 
   // 外側クリック検知用のref
   const filterRefs = {
     年度: useRef(null),
     ジャンル: useRef(null),
-    本文レベル: useRef(null)
+    本文レベル: useRef(null),
+    大問番号: useRef(null)
   };
 
   // 外側クリックでフィルターを閉じる
@@ -106,7 +109,8 @@ export default function UniversityPage({ params }) {
         方式: [],
         学部: [],
         ジャンル: [],
-        本文レベル: []
+        本文レベル: [],
+        大問番号: []
         };
         
         const yearParam = searchParams.get('year');
@@ -165,6 +169,9 @@ export default function UniversityPage({ params }) {
     if (filters.本文レベル.length > 0) {
         result = result.filter(m => filters.本文レベル.includes(m.本文レベル));
     }
+    if (filters.大問番号.length > 0) {
+    result = result.filter(m => filters.大問番号.includes(m.大問番号));
+    }
     
     console.log('フィルター後の件数:', result.length);
     
@@ -174,6 +181,14 @@ export default function UniversityPage({ params }) {
         let aVal = a[sortConfig.key];
         let bVal = b[sortConfig.key];
         
+        // 大問番号の特別処理
+        if (sortConfig.key === '大問番号') {
+            // "第1問" → 1, "第2問" → 2 のように数値を抽出
+            const aNum = parseInt(aVal.replace(/[^0-9]/g, '')) || 0;
+            const bNum = parseInt(bVal.replace(/[^0-9]/g, '')) || 0;
+            return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+
         if (typeof aVal === 'number' && typeof bVal === 'number') {
             return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
         }
@@ -210,6 +225,25 @@ export default function UniversityPage({ params }) {
         : [...prev[key], value]
     }));
   };
+
+  // ソート処理
+    const handleSort = (key) => {
+    setSortConfig(prev => {
+        if (prev.key === key) {
+        // 同じカラムをクリックした場合は昇順/降順を切り替え
+        return {
+            key,
+            direction: prev.direction === 'asc' ? 'desc' : 'asc'
+        };
+        } else {
+        // 違うカラムをクリックした場合は降順でスタート
+        return {
+            key,
+            direction: 'desc'
+        };
+        }
+    });
+    };
 
   // ソートアイコン
   const SortIcon = ({ column }) => {
@@ -440,13 +474,38 @@ export default function UniversityPage({ params }) {
                           )}
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleSort('大問番号')}
-                        className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
-                      >
-                        大問
-                        <SortIcon column="大問番号" />
-                      </button>
+                      <div className="flex items-center justify-between gap-1">
+                        <button
+                            onClick={() => handleSort('大問番号')}
+                            className="flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-emerald-600"
+                        >
+                            大問
+                            <SortIcon column="大問番号" />
+                        </button>
+                        <div className="relative" ref={filterRefs.大問番号}>
+                            <button
+                            onClick={() => setShowFilters(prev => ({ ...prev, 大問番号: !prev.大問番号 }))}
+                            className="p-1 hover:bg-gray-200 rounded"
+                            >
+                            <Filter size={14} className={filters.大問番号.length > 0 ? 'text-emerald-600' : 'text-gray-400'} />
+                            </button>
+                            {showFilters.大問番号 && (
+                            <div className="absolute top-full right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-10 min-w-[120px] max-h-[300px] overflow-y-auto">
+                                {getFilterOptions('大問番号').map(option => (
+                                <label key={option} className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 cursor-pointer text-sm text-gray-900">
+                                    <input
+                                    type="checkbox"
+                                    checked={filters.大問番号.includes(option)}
+                                    onChange={() => toggleFilter('大問番号', option)}
+                                    className="rounded"
+                                    />
+                                    {option}
+                                </label>
+                                ))}
+                            </div>
+                            )}
+                        </div>
+                        </div>
                     </div>
                   </th>
 
