@@ -165,7 +165,7 @@ export default function MondaiDetail() {
                 <tr className="hover:bg-gray-50">
                   <th className="px-4 py-3 text-left font-semibold text-gray-700 bg-gray-50">設問数</th>
                   <td className="px-4 py-3 text-gray-900">
-                    {mondaiData.設問数}問　
+                    {mondaiData.設問数}問
                     {(() => {
                       const bunshoJapanese = setumonData.filter(s => s.設問カテゴリ === '文章記述(日)').length;
                       const bunshoEnglish = setumonData.filter(s => s.設問カテゴリ === '文章記述(英)').length;
