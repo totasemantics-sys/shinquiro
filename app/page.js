@@ -19,6 +19,7 @@ export default function Home() {
   const [filters, setFilters] = useState({
     examTypes: [],
     university: '',
+    yearRange: ['', ''],  // 年度範囲 [開始年, 終了年]
     wordCountRange: [0, 1500],
     vocabLevels: [],
     genre: '',
@@ -55,6 +56,9 @@ export default function Home() {
   const [markdownContent, setMarkdownContent] = useState('');
   const [isLoadingMarkdown, setIsLoadingMarkdown] = useState(false);
   const [keywords, setKeywords] = useState([]);
+
+  // 年度リストを生成（データから動的に取得）
+  const availableYears = [...new Set(mondai.map(m => m.年度))].filter(Boolean).sort((a, b) => b - a);
 
     // マークダウンを読み込む関数
   const loadMarkdown = async (filename, setModalFunction) => {
@@ -135,6 +139,13 @@ export default function Home() {
     }
     if (filters.university) {
       results = results.filter(m => m.大学名 === filters.university);
+    }
+    // 年度範囲フィルタリング
+    if (filters.yearRange[0]) {
+      results = results.filter(m => m.年度 >= parseInt(filters.yearRange[0]));
+    }
+    if (filters.yearRange[1]) {
+      results = results.filter(m => m.年度 <= parseInt(filters.yearRange[1]));
     }
     if (filters.wordCountRange[0] > 0) {
       results = results.filter(m => m.本文語数 >= filters.wordCountRange[0]);
@@ -366,7 +377,7 @@ export default function Home() {
 
   const resetFilters = () => {
     setFilters({
-      examTypes: [], university: '', wordCountRange: [0, 1500], vocabLevels: [],
+      examTypes: [], university: '', yearRange: ['', ''], wordCountRange: [0, 1500], vocabLevels: [],
       genre: '', hashtags: [], hashtagMatchMode: 'any', questionCategories: [], questionFormats: [],
       knowledgeGrammar: [], bunshoJapanese: 'any', bunshoEnglish: 'any', freeWord: ''
     });
@@ -403,6 +414,9 @@ export default function Home() {
                 {filters.university && (
                   <span>大学: {filters.university} / </span>
                 )}
+                {(filters.yearRange[0] || filters.yearRange[1]) && (
+                  <span>年度: {filters.yearRange[0] || '下限なし'}〜{filters.yearRange[1] || '上限なし'} / </span>
+                )}
                 {(filters.wordCountRange[0] > 0 || filters.wordCountRange[1] < 1500) && (
                   <span>語数: {filters.wordCountRange[0] === 0 ? '下限なし' : `${filters.wordCountRange[0]}`}〜{filters.wordCountRange[1] === 1500 ? '上限なし' : `${filters.wordCountRange[1]}`}語 / </span>
                 )}
@@ -435,7 +449,7 @@ export default function Home() {
                 {filters.freeWord && (
                   <span>「{filters.freeWord}」 / </span>
                 )}
-                {filters.examTypes.length === 0 && !filters.university && filters.wordCountRange[0] === 0 && filters.wordCountRange[1] === 1500 && filters.vocabLevels.length === 0 && !filters.genre && filters.hashtags.length === 0 && filters.bunshoJapanese === 'any' && filters.bunshoEnglish === 'any' && filters.questionCategories.length === 0 && filters.questionFormats.length === 0 && filters.knowledgeGrammar.length === 0 && !filters.freeWord && (
+                {filters.examTypes.length === 0 && !filters.university && !filters.yearRange[0] && !filters.yearRange[1] && filters.wordCountRange[0] === 0 && filters.wordCountRange[1] === 1500 && filters.vocabLevels.length === 0 && !filters.genre && filters.hashtags.length === 0 && filters.bunshoJapanese === 'any' && filters.bunshoEnglish === 'any' && filters.questionCategories.length === 0 && filters.questionFormats.length === 0 && filters.knowledgeGrammar.length === 0 && !filters.freeWord && (
                   <span className="text-gray-500">すべての条件</span>
                 )}
               </div>
@@ -515,6 +529,43 @@ export default function Home() {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* 年度 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">年度</label>
+              <div className="flex items-center gap-3">
+                <select
+                  value={filters.yearRange[0]}
+                  onChange={(e) => setFilters({...filters, yearRange: [e.target.value, filters.yearRange[1]]})}
+                  className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 text-gray-900 bg-white min-w-[140px]"
+                >
+                  <option value="">下限なし</option>
+                  {availableYears.map(year => (
+                    <option key={year} value={year}>{year}年度</option>
+                  ))}
+                </select>
+                <span className="text-gray-500">〜</span>
+                <select
+                  value={filters.yearRange[1]}
+                  onChange={(e) => setFilters({...filters, yearRange: [filters.yearRange[0], e.target.value]})}
+                  className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-emerald-500 text-gray-900 bg-white min-w-[140px]"
+                >
+                  <option value="">上限なし</option>
+                  {availableYears.map(year => (
+                    <option key={year} value={year}>{year}年度</option>
+                  ))}
+                </select>
+                {(filters.yearRange[0] || filters.yearRange[1]) && (
+                  <button
+                    onClick={() => setFilters({...filters, yearRange: ['', '']})}
+                    className="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                    title="年度をリセット"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* 本文語数 */}
