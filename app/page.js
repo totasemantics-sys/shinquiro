@@ -1204,7 +1204,7 @@ export default function Home() {
                               <th className="px-3 py-2 text-left font-semibold text-gray-700 w-20">設問名</th>
                               <th className="px-3 py-2 text-left font-semibold text-gray-700 w-32">設問カテゴリ</th>
                               <th className="px-3 py-2 text-left font-semibold text-gray-700 w-32">設問形式</th>
-                              <th className="px-3 py-2 text-left font-semibold text-gray-700">知識・文法・重要単語</th>
+                              <th className="px-3 py-2 text-left font-semibold text-gray-700">知識/文法/重要単語</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
