@@ -7,6 +7,7 @@ import Header from '../components/Header';
 import { loadWordData, searchWord, getAvailableBooks, getWordBookMatrix } from '@/lib/loadWordData';
 import { loadKeywordData } from '@/lib/loadKeywordData';
 import { loadAllData } from '@/lib/loadData';
+import { loadWordMasterData, getWordInfoGrouped } from '@/lib/loadWordMasterData';
 
 export default function WordSearch() {
   const router = useRouter();
@@ -43,6 +44,10 @@ export default function WordSearch() {
   });
   const [openFilter, setOpenFilter] = useState(null);
 
+  // 単語マスター用のstate
+  const [wordMasterData, setWordMasterData] = useState([]);
+  const [searchedWordInfo, setSearchedWordInfo] = useState([]);
+
   // 大学別検索用のstate
   const [uniSearchFilters, setUniSearchFilters] = useState({
     yearFrom: '',
@@ -59,7 +64,7 @@ export default function WordSearch() {
   const [selectedWordDetail, setSelectedWordDetail] = useState(null);
   const [wordDetailMondai, setWordDetailMondai] = useState([]);
   const [hashtagsData, setHashtagsData] = useState([]);
-
+  const [selectedUniWords, setSelectedUniWords] = useState([]);  // 一括比較用チェック
   useEffect(() => {
     async function fetchData() {
       const data = await loadWordData();
@@ -90,6 +95,10 @@ export default function WordSearch() {
       const allData = await loadAllData();
       setMondaiData(allData.mondai);
       setHashtagsData(allData.hashtags);
+      
+      // 単語マスターデータを読み込み
+      const wordMaster = await loadWordMasterData();
+      setWordMasterData(wordMaster);
       
       setLoading(false);
     }
@@ -233,6 +242,10 @@ export default function WordSearch() {
     });
     setHasSearched(true);
     
+    // 品詞・意味情報を取得
+    const wordInfo = getWordInfoGrouped(wordMasterData, word);
+    setSearchedWordInfo(wordInfo);
+    
     // 出題された大問を検索
     const appeared = findAppearedMondai(word);
     setAppearedMondai(appeared);
@@ -279,6 +292,10 @@ export default function WordSearch() {
       allResults: results
     });
     setHasSearched(true);
+    
+    // 品詞・意味情報を取得
+    const wordInfo = getWordInfoGrouped(wordMasterData, historyWord);
+    setSearchedWordInfo(wordInfo);
     
     // 出題された大問を検索
     const appeared = findAppearedMondai(historyWord);
@@ -587,6 +604,40 @@ export default function WordSearch() {
     return Math.ceil(uniSearchResults.length / 50);
   };
 
+  // 大学別検索：チェックボックストグル
+  const toggleUniWordSelection = (word) => {
+    setSelectedUniWords(prev => {
+      if (prev.includes(word)) {
+        return prev.filter(w => w !== word);
+      } else {
+        return [...prev, word];
+      }
+    });
+  };
+
+  // 大学別検索：全選択/全解除（現在のページのみ）
+  const toggleAllCurrentPage = () => {
+    const currentPageWords = getPagedUniSearchResults().map(item => item.単語);
+    const allSelected = currentPageWords.every(word => selectedUniWords.includes(word));
+    
+    if (allSelected) {
+      // 全解除
+      setSelectedUniWords(prev => prev.filter(w => !currentPageWords.includes(w)));
+    } else {
+      // 全選択
+      setSelectedUniWords(prev => [...new Set([...prev, ...currentPageWords])]);
+    }
+  };
+
+  // 大学別検索：一括比較へ遷移（新規タブで開く）
+  const handleUniBulkCompare = () => {
+    if (selectedUniWords.length === 0) return;
+    
+    const wordsJson = JSON.stringify(selectedUniWords);
+    const url = `/words?mode=compare&words=${encodeURIComponent(wordsJson)}`;
+    window.open(url, '_blank');
+  };
+
   // 単語詳細モーダル：出題大問を取得
   const handleWordDetailClick = (wordData) => {
     setSelectedWordDetail(wordData);
@@ -740,6 +791,31 @@ export default function WordSearch() {
                     <h3 className="text-2xl font-bold text-gray-800">
                       &quot;{searchResult.word}&quot;
                     </h3>
+                    
+                    {/* 品詞・意味情報 */}
+                    {searchedWordInfo.length > 0 && (
+                      <div className="mt-3 space-y-1">
+                        {searchedWordInfo.map((info, idx) => (
+                          <div key={idx} className="flex items-center gap-2 flex-wrap">
+                            <span className={`px-2 py-0.5 text-xs font-medium rounded ${
+                              info.品詞 === '動詞' ? 'bg-blue-100 text-blue-700' :
+                              info.品詞 === '名詞' ? 'bg-green-100 text-green-700' :
+                              info.品詞 === '形容詞' ? 'bg-orange-100 text-orange-700' :
+                              info.品詞 === '副詞' ? 'bg-purple-100 text-purple-700' :
+                              info.品詞 === '前置詞' ? 'bg-pink-100 text-pink-700' :
+                              info.品詞 === '接続詞' ? 'bg-cyan-100 text-cyan-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {info.品詞}
+                            </span>
+                            {info.意味 && (
+                              <span className="text-gray-700">{info.意味}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
                     {!searchResult.found && (
                       <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-medium rounded mt-2 inline-block">
                         データなし
@@ -752,13 +828,22 @@ export default function WordSearch() {
                       <table className="w-full">
                         <thead className="bg-gray-50 border-b-2 border-gray-50">
                           <tr>
-                            <th className="px-6 py-4 text-left text-base font-semibold text-gray-700 w-1/4">
+                            {/* スマホ用ヘッダー */}
+                            <th className="md:hidden px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                              単語帳名 / 掲載状況
+                            </th>
+                            <th className="md:hidden px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                              関連語(☆は見出し語)
+                            </th>
+
+                            {/* PC用ヘッダー */}
+                            <th className="hidden md:table-cell px-6 py-4 text-left text-base font-semibold text-gray-700 w-1/4">
                               単語帳名
                             </th>
-                            <th className="px-6 py-4 text-center text-base font-semibold text-gray-700 w-1/4">
+                            <th className="hidden md:table-cell px-6 py-4 text-center text-base font-semibold text-gray-700 w-1/4">
                               掲載状況
                             </th>
-                            <th className="px-6 py-4 text-left text-base font-semibold text-gray-700 w-1/2">
+                            <th className="hidden md:table-cell px-6 py-4 text-left text-base font-semibold text-gray-700 w-1/2">
                               関連語(☆は見出し語)
                             </th>
                           </tr>
@@ -771,12 +856,81 @@ export default function WordSearch() {
                             
                             return (
                               <tr key={book} className={`hover:bg-gray-100 ${statusInfo.bg} border-l-4 ${statusInfo.border} transition-colors`}>
-                                <td className="px-6 py-5">
+                                {/* スマホ用: 単語帳名と掲載状況 */}
+                                <td className="md:hidden px-4 py-4">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-sm font-medium text-gray-800">
+                                      {book}
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className={`text-2xl font-bold ${statusInfo.color}`}>
+                                        {statusInfo.symbol}
+                                      </span>
+                                      {bookData?.status !== 'none' && (bookData?.number || bookData?.page) && (
+                                        <span className="text-xs text-gray-600">
+                                          {bookData.number && <span>{bookData.number}</span>}
+                                          {bookData.number && bookData.page && <span> </span>}
+                                          {bookData.page && <span>(p.{bookData.page})</span>}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* スマホ用: 関連語 */}
+                                <td className="md:hidden px-4 py-4">
+                                  {bookData?.status === 'none' || !bookData ? (
+                                    <span className="text-xs text-gray-400">-</span>
+                                  ) : detailInfo ? (
+                                    <div className="text-xs text-gray-700">
+                                      {detailInfo.isMain ? (
+                                        detailInfo.relatedWords.length > 0 ? (
+                                          <div className="flex flex-wrap gap-x-1 gap-y-0.5">
+                                            {detailInfo.relatedWords.map((word, idx) => (
+                                              <span key={idx} className="text-gray-600">
+                                                {word}
+                                                {idx < detailInfo.relatedWords.length - 1 && ','}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        ) : (
+                                          <span className="text-xs text-gray-400">-</span>
+                                        )
+                                      ) : (
+                                        <div className="space-y-0.5">
+                                          {detailInfo.mainWords.length > 0 && (
+                                            <div className="font-medium text-emerald-700">
+                                              ☆ {detailInfo.mainWords.join(', ')}
+                                            </div>
+                                          )}
+                                          {detailInfo.relatedWords.filter(w => w.toLowerCase() !== searchResult.word).length > 0 && (
+                                            <div className="flex flex-wrap gap-x-1 gap-y-0.5">
+                                              {detailInfo.relatedWords
+                                                .filter(w => w.toLowerCase() !== searchResult.word)
+                                                .map((word, idx) => (
+                                                  <span key={idx} className="text-gray-600">
+                                                    {word}
+                                                    {idx < detailInfo.relatedWords.filter(w => w.toLowerCase() !== searchResult.word).length - 1 && ','}
+                                                  </span>
+                                                ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="text-xs text-gray-400">-</span>
+                                  )}
+                                </td>
+
+                                {/* PC用: 単語帳名 */}
+                                <td className="hidden md:table-cell px-6 py-5">
                                   <span className="text-base font-medium text-gray-800">
                                     {book}
                                   </span>
                                 </td>
-                                <td className="px-6 py-5 text-center">
+                                {/* PC用: 掲載状況 */}
+                                <td className="hidden md:table-cell px-6 py-5 text-center">
                                   <div className="flex flex-col items-center gap-1">
                                     <span className={`text-4xl font-bold ${statusInfo.color}`}>
                                       {statusInfo.symbol}
@@ -790,7 +944,8 @@ export default function WordSearch() {
                                     )}
                                   </div>
                                 </td>
-                                <td className="px-6 py-5">
+                                {/* PC用: 関連語 */}
+                                <td className="hidden md:table-cell px-6 py-5">
                                   {bookData?.status === 'none' || !bookData ? (
                                     <span className="text-sm text-gray-400">-</span>
                                   ) : detailInfo ? (
@@ -910,8 +1065,15 @@ export default function WordSearch() {
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50">
                           <tr>
+                            {/* スマホ用ヘッダー */}
+                            <th className="md:hidden px-3 py-2 text-left font-semibold text-gray-700">大学名 / 年度</th>
+                            <th className="md:hidden px-3 py-2 text-left font-semibold text-gray-700">日程 / 学部</th>
+                            <th className="md:hidden px-3 py-2 text-left font-semibold text-gray-700">大問番号</th>
+                            <th className="md:hidden px-3 py-2 text-left font-semibold text-gray-700">ジャンル</th>
+
+                            {/* PC用ヘッダー */}
                             {['大学名', '年度', '日程', '学部', '大問番号'].map((col) => (
-                              <th key={col} className="px-3 py-2 text-left font-semibold text-gray-700 relative">
+                              <th key={col} className="hidden md:table-cell px-3 py-2 text-left font-semibold text-gray-700 relative">
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleMondaiSort(col)}
@@ -965,7 +1127,7 @@ export default function WordSearch() {
                                 </div>
                               </th>
                             ))}
-                            <th className="px-3 py-2 text-left font-semibold text-gray-700">ジャンル</th>
+                            <th className="hidden md:table-cell px-3 py-2 text-left font-semibold text-gray-700">ジャンル</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -977,16 +1139,55 @@ export default function WordSearch() {
                                 onClick={() => router.push(`/mondai/${mondai.識別名}`)}
                                 className="hover:bg-emerald-50 cursor-pointer transition-colors"
                               >
-                                <td className="px-3 py-3 text-gray-800">{mondai.大学名}</td>
-                                <td className="px-3 py-3 text-gray-800">{mondai.年度}</td>
-                                <td className="px-3 py-3 text-gray-800">{mondai.日程}</td>
-                                <td className="px-3 py-3 text-gray-800">{mondai.学部}</td>
-                                <td className="px-3 py-3">
+                                {/* スマホ用: 大学名と年度 */}
+                                <td className="md:hidden px-3 py-3">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-gray-800 font-medium">{mondai.大学名}</span>
+                                    <span className="text-gray-600 text-xs">{mondai.年度}年度</span>
+                                  </div>
+                                </td>
+
+                                {/* スマホ用: 日程と学部 */}
+                                <td className="md:hidden px-3 py-3">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-gray-800">{mondai.日程}</span>
+                                    <span className="text-gray-600 text-xs">{mondai.学部}</span>
+                                  </div>
+                                </td>
+
+                                {/* スマホ用: 大問番号 */}
+                                <td className="md:hidden px-3 py-3">
                                   <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
                                     {mondai.大問番号}
                                   </span>
                                 </td>
-                                <td className="px-3 py-3">
+
+                                {/* スマホ用: ジャンル */}
+                                <td className="md:hidden px-3 py-3">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-gray-800">{mondai.ジャンル || '-'}</span>
+                                    {firstHashtag && (
+                                      <span className="text-xs text-emerald-600">#{firstHashtag.ハッシュタグ}</span>
+                                    )}
+                                  </div>
+                                </td>
+
+                                {/* PC用: 大学名 */}
+                                <td className="hidden md:table-cell px-3 py-3 text-gray-800">{mondai.大学名}</td>
+                                {/* PC用: 年度 */}
+                                <td className="hidden md:table-cell px-3 py-3 text-gray-800">{mondai.年度}</td>
+                                {/* PC用: 日程 */}
+                                <td className="hidden md:table-cell px-3 py-3 text-gray-800">{mondai.日程}</td>
+                                {/* PC用: 学部 */}
+                                <td className="hidden md:table-cell px-3 py-3 text-gray-800">{mondai.学部}</td>
+                                {/* PC用: 大問番号 */}
+                                <td className="hidden md:table-cell px-3 py-3">
+                                  <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+                                    {mondai.大問番号}
+                                  </span>
+                                </td>
+                                {/* PC用: ジャンル */}
+                                <td className="hidden md:table-cell px-3 py-3">
                                   <div className="flex flex-col gap-1">
                                     <span className="text-gray-800">{mondai.ジャンル || '-'}</span>
                                     {firstHashtag && (
@@ -1334,10 +1535,18 @@ export default function WordSearch() {
             {/* 検索結果 */}
             {hasUniSearched && (
               <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="p-4 border-b bg-gray-50">
+                <div className="p-4 border-b bg-gray-50 flex flex-wrap items-center justify-between gap-3">
                   <h3 className="text-lg font-semibold text-gray-800">
                     検索結果: {uniSearchResults.length}件
                   </h3>
+                  {selectedUniWords.length > 0 && (
+                    <button
+                      onClick={handleUniBulkCompare}
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors text-sm font-medium flex items-center gap-2"
+                    >
+                      <span>✓ {selectedUniWords.length}件を一括比較</span>
+                    </button>
+                  )}
                 </div>
 
                 {uniSearchResults.length > 0 ? (
@@ -1346,35 +1555,150 @@ export default function WordSearch() {
                       <table className="w-full text-sm">
                         <thead className="bg-gray-100">
                           <tr>
-                            <th className="px-4 py-3 text-center font-semibold text-gray-700 w-16">順位</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-700">単語</th>
-                            <th className="px-4 py-3 text-center font-semibold text-gray-700 w-24">品詞</th>
-                            <th className="px-4 py-3 text-center font-semibold text-gray-700 w-20">レベル</th>
-                            <th className="px-4 py-3 text-center font-semibold text-gray-700 w-24">出題回数</th>
-                            <th className="px-4 py-3 text-left font-semibold text-gray-700">意味</th>
+                            {/* スマホ用ヘッダー */}
+                            <th className="md:hidden px-2 py-3 text-center font-semibold text-gray-700 w-8">#</th>
+                            <th className="md:hidden px-2 py-3 text-center font-semibold text-gray-700 w-14">回数</th>
+                            <th className="md:hidden px-2 py-3 text-center font-semibold text-gray-700">品詞 / Lv</th>
+                            <th className="md:hidden px-2 py-3 text-left font-semibold text-gray-700">単語 / 意味</th>
+                            <th className="md:hidden px-2 py-3 text-center font-semibold text-gray-700 w-12">
+                              <button
+                                onClick={toggleAllCurrentPage}
+                                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
+                                  getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語))
+                                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                                    : 'border-gray-300 hover:border-emerald-400'
+                                }`}
+                              >
+                                {getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語)) && (
+                                  <span className="text-xs">✓</span>
+                                )}
+                              </button>
+                            </th>
+
+                            {/* PC用ヘッダー */}
+                            <th className="hidden md:table-cell px-3 py-3 text-center font-semibold text-gray-700 w-14">順位</th>
+                            <th className="hidden md:table-cell px-3 py-3 text-center font-semibold text-gray-700 w-20">出題回数</th>
+                            <th className="hidden md:table-cell px-3 py-3 text-center font-semibold text-gray-700 w-20">品詞</th>
+                            <th className="hidden md:table-cell px-3 py-3 text-center font-semibold text-gray-700 w-20">レベル</th>
+                            <th className="hidden md:table-cell px-4 py-3 text-left font-semibold text-gray-700">単語</th>
+                            <th className="hidden md:table-cell px-4 py-3 text-left font-semibold text-gray-700">意味</th>
+                            <th className="hidden md:table-cell px-3 py-3 text-center font-semibold text-gray-700 w-16">
+                              <button
+                                onClick={toggleAllCurrentPage}
+                                className={`w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all ${
+                                  getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語))
+                                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                                    : 'border-gray-300 hover:border-emerald-400'
+                                }`}
+                              >
+                                {getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語)) && (
+                                  <span className="text-sm font-bold">✓</span>
+                                )}
+                              </button>
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
                           {getPagedUniSearchResults().map((item, idx) => {
                             const rank = (uniSearchPage - 1) * 50 + idx + 1;
+                            const isSelected = selectedUniWords.includes(item.単語);
                             return (
                               <tr
                                 key={idx}
-                                onClick={() => handleWordDetailClick(item)}
-                                className="hover:bg-emerald-50 cursor-pointer transition-colors"
+                                className={`hover:bg-emerald-50 transition-colors ${isSelected ? 'bg-emerald-50' : ''}`}
                               >
-                                <td className="px-4 py-3 text-center text-gray-600 font-medium">
+                                {/* スマホ用: 順位 */}
+                                <td 
+                                  className="md:hidden px-2 py-3 text-center text-gray-500 text-xs cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
                                   {rank}
                                 </td>
-                                <td className="px-4 py-3 text-gray-900 font-medium">
-                                  {item.単語}
+                                {/* スマホ用: 出題回数 */}
+                                <td 
+                                  className="md:hidden px-2 py-3 text-center cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
+                                  <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                                    {item.出題回数}
+                                  </span>
                                 </td>
-                                <td className="px-4 py-3 text-center">
+                                {/* スマホ用: 品詞とレベル */}
+                                <td 
+                                  className="md:hidden px-2 py-3 cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
+                                  <div className="flex flex-col gap-1 items-center">
+                                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
+                                      {item.品詞}
+                                    </span>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                      item.レベル === '修練' ? 'bg-purple-100 text-purple-700' :
+                                      item.レベル === '上級' ? 'bg-red-100 text-red-700' :
+                                      item.レベル === '標準' ? 'bg-blue-100 text-blue-700' :
+                                      'bg-green-100 text-green-700'
+                                    }`}>
+                                      {item.レベル}
+                                    </span>
+                                  </div>
+                                </td>
+                                {/* スマホ用: 単語と意味 */}
+                                <td 
+                                  className="md:hidden px-2 py-3 cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-gray-900 font-medium">{item.単語}</span>
+                                    <span className="text-xs text-gray-500">{item.意味 || '-'}</span>
+                                  </div>
+                                </td>
+                                {/* スマホ用: チェックボックス */}
+                                <td className="md:hidden px-2 py-3 text-center">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleUniWordSelection(item.単語);
+                                    }}
+                                    className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
+                                      isSelected
+                                        ? 'bg-emerald-500 border-emerald-500 text-white'
+                                        : 'border-gray-300 hover:border-emerald-400'
+                                    }`}
+                                  >
+                                    {isSelected && <span className="text-xs">✓</span>}
+                                  </button>
+                                </td>
+
+                                {/* PC用: 順位 */}
+                                <td 
+                                  className="hidden md:table-cell px-3 py-3 text-center text-gray-600 font-medium cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
+                                  {rank}
+                                </td>
+                                {/* PC用: 出題回数 */}
+                                <td 
+                                  className="hidden md:table-cell px-3 py-3 text-center cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
+                                  <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-bold">
+                                    {item.出題回数}
+                                  </span>
+                                </td>
+                                {/* PC用: 品詞 */}
+                                <td 
+                                  className="hidden md:table-cell px-3 py-3 text-center cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
                                   <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                                     {item.品詞}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-center">
+                                {/* PC用: レベル */}
+                                <td 
+                                  className="hidden md:table-cell px-3 py-3 text-center cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
                                   <span className={`px-2 py-1 rounded text-xs font-medium ${
                                     item.レベル === '修練' ? 'bg-purple-100 text-purple-700' :
                                     item.レベル === '上級' ? 'bg-red-100 text-red-700' :
@@ -1384,13 +1708,35 @@ export default function WordSearch() {
                                     {item.レベル}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-center">
-                                  <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-bold">
-                                    {item.出題回数}
-                                  </span>
+                                {/* PC用: 単語 */}
+                                <td 
+                                  className="hidden md:table-cell px-4 py-3 text-gray-900 font-medium cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
+                                  {item.単語}
                                 </td>
-                                <td className="px-4 py-3 text-gray-600">
+                                {/* PC用: 意味 */}
+                                <td 
+                                  className="hidden md:table-cell px-4 py-3 text-gray-600 cursor-pointer"
+                                  onClick={() => handleWordDetailClick(item)}
+                                >
                                   {item.意味 || '-'}
+                                </td>
+                                {/* PC用: チェックボックス */}
+                                <td className="hidden md:table-cell px-3 py-3 text-center">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleUniWordSelection(item.単語);
+                                    }}
+                                    className={`w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all ${
+                                      isSelected
+                                        ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
+                                        : 'border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
+                                    }`}
+                                  >
+                                    {isSelected && <span className="text-sm font-bold">✓</span>}
+                                  </button>
                                 </td>
                               </tr>
                             );
