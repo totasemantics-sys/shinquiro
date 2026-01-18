@@ -1,11 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Info } from 'lucide-react';
+import { Search, Info, ChevronUp, ChevronDown, Filter } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import { loadWordData, searchWord, getAvailableBooks, getWordBookMatrix } from '@/lib/loadWordData';
+import { loadKeywordData } from '@/lib/loadKeywordData';
+import { loadAllData } from '@/lib/loadData';
 
 export default function WordSearch() {
+  const router = useRouter();
   const [wordData, setWordData] = useState([]);
   const [availableBooks, setAvailableBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +29,36 @@ export default function WordSearch() {
   const [compareBooks, setCompareBooks] = useState([]);
   const [compareResults, setCompareResults] = useState({});
   const [compareRowCount, setCompareRowCount] = useState(10);
+
+  // 出題大問用のstate
+  const [keywordData, setKeywordData] = useState([]);
+  const [mondaiData, setMondaiData] = useState([]);
+  const [appearedMondai, setAppearedMondai] = useState([]);
+  const [mondaiSortConfig, setMondaiSortConfig] = useState({ key: '年度', direction: 'desc' });
+  const [mondaiFilters, setMondaiFilters] = useState({
+    大学名: [],
+    年度: [],
+    日程: [],
+    学部: []
+  });
+  const [openFilter, setOpenFilter] = useState(null);
+
+  // 大学別検索用のstate
+  const [uniSearchFilters, setUniSearchFilters] = useState({
+    yearFrom: '',
+    yearTo: '',
+    universities: [],
+    faculties: [],
+    partsOfSpeech: [],
+    levels: []
+  });
+  const [uniSearchResults, setUniSearchResults] = useState([]);
+  const [uniSearchPage, setUniSearchPage] = useState(1);
+  const [hasUniSearched, setHasUniSearched] = useState(false);
+  const [showWordDetailModal, setShowWordDetailModal] = useState(false);
+  const [selectedWordDetail, setSelectedWordDetail] = useState(null);
+  const [wordDetailMondai, setWordDetailMondai] = useState([]);
+  const [hashtagsData, setHashtagsData] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -48,6 +82,14 @@ export default function WordSearch() {
       setSelectionOrder(initialOrder);
       
       setCompareBooks(books.slice(0, 3));
+      
+      // キーワードデータと大問データを読み込み
+      const keywords = await loadKeywordData();
+      setKeywordData(keywords);
+      
+      const allData = await loadAllData();
+      setMondaiData(allData.mondai);
+      setHashtagsData(allData.hashtags);
       
       setLoading(false);
     }
@@ -96,6 +138,14 @@ export default function WordSearch() {
             
             setCompareBooks(books.slice(0, 3));
             
+            // キーワードデータと大問データを読み込み
+            const keywords = await loadKeywordData();
+            setKeywordData(keywords);
+            
+            const allData = await loadAllData();
+            setMondaiData(allData.mondai);
+            setHashtagsData(allData.hashtags);
+            
             setLoading(false);
             
             // URLパラメータから単語を受け取る処理を追加
@@ -133,6 +183,33 @@ export default function WordSearch() {
         fetchData();
         }, []);
 
+  // 検索した単語が出題された大問を取得
+  const findAppearedMondai = (word) => {
+    if (!keywordData || keywordData.length === 0 || !mondaiData || mondaiData.length === 0) {
+      return [];
+    }
+    
+    const searchTerm = word.toLowerCase().trim();
+    
+    // その単語がkeywordとして登録されている大問IDを取得
+    const matchedKeywords = keywordData.filter(k => k.単語?.toLowerCase() === searchTerm);
+    const mondaiIds = [...new Set(matchedKeywords.map(k => k.大問ID))];
+    
+    // 大問データと結合
+    const results = mondaiIds.map(id => {
+      const mondai = mondaiData.find(m => m.大問ID === id);
+      if (mondai) {
+        return {
+          ...mondai,
+          識別名: mondai.識別名
+        };
+      }
+      return null;
+    }).filter(Boolean);
+    
+    return results;
+  };
+
   const handleSearch = () => {
     const word = searchInput.trim().toLowerCase();
     if (!word) return;
@@ -155,6 +232,19 @@ export default function WordSearch() {
       allResults: results
     });
     setHasSearched(true);
+    
+    // 出題された大問を検索
+    const appeared = findAppearedMondai(word);
+    setAppearedMondai(appeared);
+    
+    // フィルターをリセット
+    setMondaiFilters({
+      大学名: [],
+      年度: [],
+      日程: [],
+      学部: []
+    });
+    setMondaiSortConfig({ key: '年度', direction: 'desc' });
     
     // 検索履歴に追加（重複を避け、最新10件のみ保持）
     setSearchHistory(prev => {
@@ -189,6 +279,19 @@ export default function WordSearch() {
       allResults: results
     });
     setHasSearched(true);
+    
+    // 出題された大問を検索
+    const appeared = findAppearedMondai(historyWord);
+    setAppearedMondai(appeared);
+    
+    // フィルターをリセット
+    setMondaiFilters({
+      大学名: [],
+      年度: [],
+      日程: [],
+      学部: []
+    });
+    setMondaiSortConfig({ key: '年度', direction: 'desc' });
   };
 
   const toggleBook = (book) => {
@@ -296,6 +399,212 @@ export default function WordSearch() {
     }
   };
 
+  // 出題大問のソート処理
+  const handleMondaiSort = (key) => {
+    setMondaiSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  // 出題大問のフィルター選択肢を取得
+  const getMondaiFilterOptions = (key) => {
+    const values = [...new Set(appearedMondai.map(m => m[key]))].filter(Boolean);
+    if (key === '年度') {
+      return values.sort((a, b) => b - a);
+    }
+    return values.sort();
+  };
+
+  // 出題大問のフィルターを適用
+  const getFilteredMondai = () => {
+    let filtered = [...appearedMondai];
+    
+    // フィルター適用
+    Object.keys(mondaiFilters).forEach(key => {
+      if (mondaiFilters[key].length > 0) {
+        filtered = filtered.filter(m => mondaiFilters[key].includes(m[key]));
+      }
+    });
+    
+    // ソート適用
+    filtered.sort((a, b) => {
+      const aVal = a[mondaiSortConfig.key];
+      const bVal = b[mondaiSortConfig.key];
+      
+      if (mondaiSortConfig.key === '年度') {
+        const diff = parseInt(bVal) - parseInt(aVal);
+        if (diff !== 0) return mondaiSortConfig.direction === 'desc' ? diff : -diff;
+        // 同一年度ならIDで比較
+        return parseInt(a.大問ID) - parseInt(b.大問ID);
+      }
+      
+      if (mondaiSortConfig.key === '大問番号') {
+        const aNum = parseInt(aVal?.replace(/[^0-9]/g, '')) || 0;
+        const bNum = parseInt(bVal?.replace(/[^0-9]/g, '')) || 0;
+        return mondaiSortConfig.direction === 'desc' ? bNum - aNum : aNum - bNum;
+      }
+      
+      const comparison = String(aVal).localeCompare(String(bVal), 'ja');
+      return mondaiSortConfig.direction === 'desc' ? -comparison : comparison;
+    });
+    
+    return filtered;
+  };
+
+  // フィルター切り替え
+  const toggleMondaiFilter = (key, value) => {
+    setMondaiFilters(prev => {
+      const current = prev[key];
+      if (current.includes(value)) {
+        return { ...prev, [key]: current.filter(v => v !== value) };
+      } else {
+        return { ...prev, [key]: [...current, value] };
+      }
+    });
+  };
+
+  // 大学別検索：利用可能な年度リストを取得
+  const getAvailableYears = () => {
+    const years = [...new Set(mondaiData.map(m => m.年度))].filter(Boolean);
+    return years.sort((a, b) => b - a);
+  };
+
+  // 大学別検索：利用可能な大学リストを取得
+  const getAvailableUniversities = () => {
+    const universities = [...new Set(mondaiData.map(m => m.大学名))].filter(Boolean);
+    return universities.sort((a, b) => a.localeCompare(b, 'ja'));
+  };
+
+  // 大学別検索：選択された大学に基づく学部リストを取得
+  const getAvailableFaculties = () => {
+    let filtered = mondaiData;
+    if (uniSearchFilters.universities.length > 0) {
+      filtered = mondaiData.filter(m => uniSearchFilters.universities.includes(m.大学名));
+    }
+    const faculties = [...new Set(filtered.map(m => m.学部))].filter(Boolean);
+    return faculties.sort((a, b) => a.localeCompare(b, 'ja'));
+  };
+
+  // 大学別検索：利用可能な品詞リストを取得
+  const getAvailablePartsOfSpeech = () => {
+    const parts = [...new Set(keywordData.map(k => k.品詞))].filter(Boolean);
+    return parts.sort((a, b) => a.localeCompare(b, 'ja'));
+  };
+
+  // 大学別検索：検索実行
+  const handleUniSearch = () => {
+    // フィルター条件に合う大問IDを取得
+    let filteredMondai = [...mondaiData];
+    
+    // 年度フィルター
+    if (uniSearchFilters.yearFrom) {
+      filteredMondai = filteredMondai.filter(m => parseInt(m.年度) >= parseInt(uniSearchFilters.yearFrom));
+    }
+    if (uniSearchFilters.yearTo) {
+      filteredMondai = filteredMondai.filter(m => parseInt(m.年度) <= parseInt(uniSearchFilters.yearTo));
+    }
+    
+    // 大学フィルター
+    if (uniSearchFilters.universities.length > 0) {
+      filteredMondai = filteredMondai.filter(m => uniSearchFilters.universities.includes(m.大学名));
+    }
+    
+    // 学部フィルター
+    if (uniSearchFilters.faculties.length > 0) {
+      filteredMondai = filteredMondai.filter(m => uniSearchFilters.faculties.includes(m.学部));
+    }
+    
+    const filteredMondaiIds = filteredMondai.map(m => m.大問ID);
+    
+    // フィルター条件に合うキーワードを取得
+    let filteredKeywords = keywordData.filter(k => filteredMondaiIds.includes(k.大問ID));
+    
+    // 品詞フィルター
+    if (uniSearchFilters.partsOfSpeech.length > 0) {
+      filteredKeywords = filteredKeywords.filter(k => uniSearchFilters.partsOfSpeech.includes(k.品詞));
+    }
+    
+    // レベルフィルター
+    if (uniSearchFilters.levels.length > 0) {
+      filteredKeywords = filteredKeywords.filter(k => uniSearchFilters.levels.includes(k.レベル));
+    }
+    
+    // 単語ごとに出題回数をカウント
+    const wordCounts = {};
+    filteredKeywords.forEach(k => {
+      const word = k.単語?.toLowerCase();
+      if (!word) return;
+      
+      if (!wordCounts[word]) {
+        wordCounts[word] = {
+          単語: k.単語,
+          品詞: k.品詞,
+          レベル: k.レベル,
+          意味: k.意味,
+          出題回数: 0,
+          大問IDs: []
+        };
+      }
+      wordCounts[word].出題回数++;
+      if (!wordCounts[word].大問IDs.includes(k.大問ID)) {
+        wordCounts[word].大問IDs.push(k.大問ID);
+      }
+      // 意味が空の場合は他のエントリから補完
+      if (!wordCounts[word].意味 && k.意味) {
+        wordCounts[word].意味 = k.意味;
+      }
+    });
+    
+    // 出題回数順にソート
+    const results = Object.values(wordCounts).sort((a, b) => b.出題回数 - a.出題回数);
+    
+    setUniSearchResults(results);
+    setUniSearchPage(1);
+    setHasUniSearched(true);
+  };
+
+  // 大学別検索：フィルター切り替え
+  const toggleUniSearchFilter = (key, value) => {
+    setUniSearchFilters(prev => {
+      const current = prev[key];
+      if (current.includes(value)) {
+        return { ...prev, [key]: current.filter(v => v !== value) };
+      } else {
+        return { ...prev, [key]: [...current, value] };
+      }
+    });
+  };
+
+  // 大学別検索：ページネーション
+  const getPagedUniSearchResults = () => {
+    const start = (uniSearchPage - 1) * 50;
+    const end = start + 50;
+    return uniSearchResults.slice(start, end);
+  };
+
+  const getTotalPages = () => {
+    return Math.ceil(uniSearchResults.length / 50);
+  };
+
+  // 単語詳細モーダル：出題大問を取得
+  const handleWordDetailClick = (wordData) => {
+    setSelectedWordDetail(wordData);
+    
+    // その単語が出題された大問の詳細を取得
+    const mondaiDetails = wordData.大問IDs.map(id => {
+      return mondaiData.find(m => m.大問ID === id);
+    }).filter(Boolean).sort((a, b) => {
+      // 年度新しい順
+      const yearDiff = parseInt(b.年度) - parseInt(a.年度);
+      if (yearDiff !== 0) return yearDiff;
+      return parseInt(a.大問ID) - parseInt(b.大問ID);
+    });
+    
+    setWordDetailMondai(mondaiDetails);
+    setShowWordDetailModal(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
@@ -332,6 +641,16 @@ export default function WordSearch() {
             }`}
           >
             単語帳比較
+          </button>
+          <button
+            onClick={() => setPageMode('university')}
+            className={`px-6 py-3 rounded-md font-medium transition-colors ${
+              pageMode === 'university'
+                ? 'bg-emerald-600 text-white'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            大学別検索
           </button>
         </div>
       </div>
@@ -535,7 +854,7 @@ export default function WordSearch() {
 
                 {/* 検索履歴 */}
                 {searchHistory.length > 0 && (
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
                     <div className="flex items-center gap-3 mb-4">
                     <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <Info className="text-emerald-600" size={20} />
@@ -578,6 +897,117 @@ export default function WordSearch() {
                     </div>
                 </div>
                 )}
+
+                {/* 出題された大問 */}
+                {appearedMondai.length > 0 && (
+                  <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
+                      <Search className="text-emerald-600" size={20} />
+                      出題された大問 ({getFilteredMondai().length}件)
+                    </h3>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            {['大学名', '年度', '日程', '学部', '大問番号'].map((col) => (
+                              <th key={col} className="px-3 py-2 text-left font-semibold text-gray-700 relative">
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleMondaiSort(col)}
+                                    className="flex items-center gap-1 hover:text-emerald-600"
+                                  >
+                                    {col}
+                                    {mondaiSortConfig.key === col && (
+                                      mondaiSortConfig.direction === 'desc' 
+                                        ? <ChevronDown size={14} /> 
+                                        : <ChevronUp size={14} />
+                                    )}
+                                  </button>
+                                  {col !== '大問番号' && (
+                                    <div className="relative">
+                                      <button
+                                        onClick={() => setOpenFilter(openFilter === col ? null : col)}
+                                        className={`p-1 rounded hover:bg-gray-200 ${
+                                          mondaiFilters[col]?.length > 0 ? 'text-emerald-600' : 'text-gray-400'
+                                        }`}
+                                      >
+                                        <Filter size={14} />
+                                      </button>
+                                      {openFilter === col && (
+                                        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[150px] max-h-60 overflow-y-auto">
+                                          <div className="p-2 border-b">
+                                            <button
+                                              onClick={() => setMondaiFilters(prev => ({ ...prev, [col]: [] }))}
+                                              className="text-xs text-gray-500 hover:text-emerald-600"
+                                            >
+                                              すべて解除
+                                            </button>
+                                          </div>
+                                          {getMondaiFilterOptions(col).map((option) => (
+                                            <label
+                                              key={option}
+                                              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                                            >
+                                              <input
+                                                type="checkbox"
+                                                checked={mondaiFilters[col]?.includes(option)}
+                                                onChange={() => toggleMondaiFilter(col, option)}
+                                                className="rounded text-emerald-600 focus:ring-emerald-500"
+                                              />
+                                              <span className="text-sm">{option}</span>
+                                            </label>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </th>
+                            ))}
+                            <th className="px-3 py-2 text-left font-semibold text-gray-700">ジャンル</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {getFilteredMondai().map((mondai, idx) => {
+                            const firstHashtag = hashtagsData.find(h => h.大問ID === mondai.大問ID);
+                            return (
+                              <tr
+                                key={idx}
+                                onClick={() => router.push(`/mondai/${mondai.識別名}`)}
+                                className="hover:bg-emerald-50 cursor-pointer transition-colors"
+                              >
+                                <td className="px-3 py-3 text-gray-800">{mondai.大学名}</td>
+                                <td className="px-3 py-3 text-gray-800">{mondai.年度}</td>
+                                <td className="px-3 py-3 text-gray-800">{mondai.日程}</td>
+                                <td className="px-3 py-3 text-gray-800">{mondai.学部}</td>
+                                <td className="px-3 py-3">
+                                  <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+                                    {mondai.大問番号}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-3">
+                                  <div className="flex flex-col gap-1">
+                                    <span className="text-gray-800">{mondai.ジャンル || '-'}</span>
+                                    {firstHashtag && (
+                                      <span className="text-xs text-emerald-600">#{firstHashtag.ハッシュタグ}</span>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    {getFilteredMondai().length === 0 && (
+                      <div className="text-center py-8 text-gray-500">
+                        フィルター条件に一致する大問がありません
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
 
@@ -598,7 +1028,7 @@ export default function WordSearch() {
               </div>
             )}
           </>
-        ) : (
+        ) : pageMode === 'compare' ? (
           <>
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <div className="flex items-center gap-2 mb-4">
@@ -755,8 +1185,401 @@ export default function WordSearch() {
               </div>
             </div>
           </>
-        )}
+        ) : pageMode === 'university' ? (
+          <>
+            {/* 大学別検索フィルター */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Search className="text-emerald-600" size={24} />
+                <h2 className="text-xl font-semibold text-gray-800">大学別検索</h2>
+              </div>
+              <p className="text-sm text-gray-600 mb-6">
+                指定した条件で出題された単語を、出題回数が多い順に表示します
+              </p>
+
+              {/* 年度フィルター */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">年度</label>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={uniSearchFilters.yearFrom}
+                    onChange={(e) => setUniSearchFilters(prev => ({ ...prev, yearFrom: e.target.value }))}
+                    className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  >
+                    <option value="">指定なし</option>
+                    {getAvailableYears().map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                  <span className="text-gray-500">〜</span>
+                  <select
+                    value={uniSearchFilters.yearTo}
+                    onChange={(e) => setUniSearchFilters(prev => ({ ...prev, yearTo: e.target.value }))}
+                    className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  >
+                    <option value="">指定なし</option>
+                    {getAvailableYears().map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* 大学名フィルター */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  大学名
+                  {uniSearchFilters.universities.length > 0 && (
+                    <span className="ml-2 text-emerald-600">({uniSearchFilters.universities.length}件選択中)</span>
+                  )}
+                </label>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border border-gray-200 rounded-md">
+                  {getAvailableUniversities().map(uni => (
+                    <button
+                      key={uni}
+                      onClick={() => toggleUniSearchFilter('universities', uni)}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        uniSearchFilters.universities.includes(uni)
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {uni}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 学部フィルター */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  学部
+                  {uniSearchFilters.faculties.length > 0 && (
+                    <span className="ml-2 text-emerald-600">({uniSearchFilters.faculties.length}件選択中)</span>
+                  )}
+                </label>
+                <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 border border-gray-200 rounded-md">
+                  {getAvailableFaculties().map(fac => (
+                    <button
+                      key={fac}
+                      onClick={() => toggleUniSearchFilter('faculties', fac)}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        uniSearchFilters.faculties.includes(fac)
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {fac}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 品詞フィルター */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">品詞</label>
+                <div className="flex flex-wrap gap-2">
+                  {getAvailablePartsOfSpeech().map(pos => (
+                    <button
+                      key={pos}
+                      onClick={() => toggleUniSearchFilter('partsOfSpeech', pos)}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        uniSearchFilters.partsOfSpeech.includes(pos)
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {pos}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* レベルフィルター */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">レベル</label>
+                <div className="flex flex-wrap gap-2">
+                  {['修練', '上級', '標準', '基礎'].map(level => (
+                    <button
+                      key={level}
+                      onClick={() => toggleUniSearchFilter('levels', level)}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        uniSearchFilters.levels.includes(level)
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {level === '修練' && '🚀 '}
+                      {level === '上級' && '🔬 '}
+                      {level === '標準' && '🖋️ '}
+                      {level === '基礎' && '📘 '}
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 検索ボタン */}
+              <div className="flex justify-center">
+                <button
+                  onClick={handleUniSearch}
+                  className="px-8 py-3 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors flex items-center gap-2 font-medium"
+                >
+                  <Search size={20} />
+                  検索
+                </button>
+              </div>
+            </div>
+
+            {/* 検索結果 */}
+            {hasUniSearched && (
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="p-4 border-b bg-gray-50">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    検索結果: {uniSearchResults.length}件
+                  </h3>
+                </div>
+
+                {uniSearchResults.length > 0 ? (
+                  <>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-100">
+                          <tr>
+                            <th className="px-4 py-3 text-center font-semibold text-gray-700 w-16">順位</th>
+                            <th className="px-4 py-3 text-left font-semibold text-gray-700">単語</th>
+                            <th className="px-4 py-3 text-center font-semibold text-gray-700 w-24">品詞</th>
+                            <th className="px-4 py-3 text-center font-semibold text-gray-700 w-20">レベル</th>
+                            <th className="px-4 py-3 text-center font-semibold text-gray-700 w-24">出題回数</th>
+                            <th className="px-4 py-3 text-left font-semibold text-gray-700">意味</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                          {getPagedUniSearchResults().map((item, idx) => {
+                            const rank = (uniSearchPage - 1) * 50 + idx + 1;
+                            return (
+                              <tr
+                                key={idx}
+                                onClick={() => handleWordDetailClick(item)}
+                                className="hover:bg-emerald-50 cursor-pointer transition-colors"
+                              >
+                                <td className="px-4 py-3 text-center text-gray-600 font-medium">
+                                  {rank}
+                                </td>
+                                <td className="px-4 py-3 text-gray-900 font-medium">
+                                  {item.単語}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                                    {item.品詞}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                    item.レベル === '修練' ? 'bg-purple-100 text-purple-700' :
+                                    item.レベル === '上級' ? 'bg-red-100 text-red-700' :
+                                    item.レベル === '標準' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-green-100 text-green-700'
+                                  }`}>
+                                    {item.レベル}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-bold">
+                                    {item.出題回数}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-gray-600">
+                                  {item.意味 || '-'}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* ページネーション */}
+                    {getTotalPages() > 1 && (
+                      <div className="p-4 border-t bg-gray-50 flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => setUniSearchPage(prev => Math.max(1, prev - 1))}
+                          disabled={uniSearchPage === 1}
+                          className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          前へ
+                        </button>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: Math.min(5, getTotalPages()) }, (_, i) => {
+                            let pageNum;
+                            if (getTotalPages() <= 5) {
+                              pageNum = i + 1;
+                            } else if (uniSearchPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (uniSearchPage >= getTotalPages() - 2) {
+                              pageNum = getTotalPages() - 4 + i;
+                            } else {
+                              pageNum = uniSearchPage - 2 + i;
+                            }
+                            return (
+                              <button
+                                key={pageNum}
+                                onClick={() => setUniSearchPage(pageNum)}
+                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                  uniSearchPage === pageNum
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                {pageNum}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={() => setUniSearchPage(prev => Math.min(getTotalPages(), prev + 1))}
+                          disabled={uniSearchPage === getTotalPages()}
+                          className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          次へ
+                        </button>
+                        <span className="ml-4 text-sm text-gray-600">
+                          {uniSearchPage} / {getTotalPages()} ページ
+                        </span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="p-12 text-center">
+                    <p className="text-gray-500 text-lg">条件に一致する単語がありません</p>
+                    <p className="text-gray-400 text-sm mt-2">フィルター条件を変更してみてください</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 未検索時の説明 */}
+            {!hasUniSearched && (
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Info className="text-emerald-600" size={20} />
+                  使い方
+                </h3>
+                <div className="space-y-3 text-gray-700">
+                  <p>1. 年度、大学名、学部などの条件を指定します</p>
+                  <p>2. 「検索」ボタンをクリックします</p>
+                  <p>3. 指定した条件で出題された単語が、出題回数の多い順に表示されます</p>
+                  <p>4. 単語をクリックすると、その単語が出題された大問の一覧が表示されます</p>
+                </div>
+              </div>
+            )}
+          </>
+        ) : null}
       </div>
+
+      {/* 単語詳細モーダル */}
+      {showWordDetailModal && selectedWordDetail && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b bg-emerald-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-2xl font-bold text-gray-900">{selectedWordDetail.単語}</h3>
+                    {selectedWordDetail.意味 && (
+                      <span className="text-lg text-gray-600">: {selectedWordDetail.意味}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                      {selectedWordDetail.品詞}
+                    </span>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      selectedWordDetail.レベル === '修練' ? 'bg-purple-100 text-purple-700' :
+                      selectedWordDetail.レベル === '上級' ? 'bg-red-100 text-red-700' :
+                      selectedWordDetail.レベル === '標準' ? 'bg-blue-100 text-blue-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {selectedWordDetail.レベル}
+                    </span>
+                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-bold">
+                      出題 {selectedWordDetail.出題回数}回
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowWordDetailModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">出題された大問</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-700">大学名</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-700">年度</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-700">日程</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-700">学部</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-700">大問</th>
+                      <th className="px-3 py-2 text-left font-semibold text-gray-700">ジャンル</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {wordDetailMondai.map((mondai, idx) => {
+                      // この大問の1つ目のハッシュタグを取得
+                      const firstHashtag = hashtagsData.find(h => h.大問ID === mondai.大問ID);
+                      
+                      return (
+                        <tr
+                          key={idx}
+                          onClick={() => {
+                            setShowWordDetailModal(false);
+                            router.push(`/mondai/${mondai.識別名}`);
+                          }}
+                          className="hover:bg-emerald-50 cursor-pointer transition-colors"
+                        >
+                          <td className="px-3 py-3 text-gray-800">{mondai.大学名}</td>
+                          <td className="px-3 py-3 text-gray-800">{mondai.年度}</td>
+                          <td className="px-3 py-3 text-gray-800">{mondai.日程}</td>
+                          <td className="px-3 py-3 text-gray-800">{mondai.学部}</td>
+                          <td className="px-3 py-3">
+                            <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+                              {mondai.大問番号}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-gray-800">{mondai.ジャンル || '-'}</span>
+                              {firstHashtag && (
+                                <span className="text-xs text-emerald-600">#{firstHashtag.ハッシュタグ}</span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t bg-gray-50 flex justify-end">
+              <button
+                onClick={() => setShowWordDetailModal(false)}
+                className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium transition-colors"
+              >
+                閉じる
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* スマホ用の固定比較実行ボタン */}
       {pageMode === 'compare' && (
@@ -769,6 +1592,14 @@ export default function WordSearch() {
             比較実行
           </button>
         </div>
+      )}
+
+      {/* フィルタードロップダウンを閉じるためのオーバーレイ */}
+      {openFilter && (
+        <div
+          className="fixed inset-0 z-0"
+          onClick={() => setOpenFilter(null)}
+        />
       )}
 
       <footer className="bg-white border-t mt-12 py-6">

@@ -6,6 +6,7 @@ import { ChevronLeft, ExternalLink, ChevronRight, Home } from 'lucide-react';
 import { loadAllData, getUniversityCodeFromId, getUniversityName } from '@/lib/loadData';
 import ReactMarkdown from 'react-markdown';
 import { loadKeywordData, getKeywordsByMondaiId, getKeywordCountByLevel, filterKeywordsByLevels } from '@/lib/loadKeywordData';
+import { loadWordData, getAvailableBooks } from '@/lib/loadWordData';
 import Header from '@/app/components/Header';
 
 export default function MondaiDetail() {
@@ -22,12 +23,21 @@ export default function MondaiDetail() {
   const [reviewContent, setReviewContent] = useState(null);
   const [hasReview, setHasReview] = useState(false);
   const [keywordData, setKeywordData] = useState([]);
-  const [keywordMode, setKeywordMode] = useState('list'); // 'list' | 'select-level' | 'check' | 'result'
+  const [keywordMode, setKeywordMode] = useState('select-level'); // 'list' | 'select-level' | 'check' | 'result'
   const [selectedLevels, setSelectedLevels] = useState([]);
   const [selectedKeywords, setSelectedKeywords] = useState([]); // チェックボックス用
   const [currentKeywordIndex, setCurrentKeywordIndex] = useState(0);
   const [keywordAnswers, setKeywordAnswers] = useState([]);
   const [shuffledKeywords, setShuffledKeywords] = useState([]);
+
+  // 単語帳掲載状況用のstate
+  const [wordData, setWordData] = useState([]);
+  const [availableBooks, setAvailableBooks] = useState([]);
+  const [selectedBook, setSelectedBook] = useState('');
+  
+  // 単語詳細モーダル用のstate
+  const [showWordModal, setShowWordModal] = useState(false);
+  const [selectedWord, setSelectedWord] = useState(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -64,16 +74,92 @@ export default function MondaiDetail() {
         }
 
         // キーワードデータを読み込み
-          const keywords = await loadKeywordData();
-          const mondaiKeywords = getKeywordsByMondaiId(keywords, found.大問ID);
-          setKeywordData(mondaiKeywords);
+        const keywords = await loadKeywordData();
+        const mondaiKeywords = getKeywordsByMondaiId(keywords, found.大問ID);
+        setKeywordData(mondaiKeywords);
 
+        // 単語帳データを読み込み
+        const wordDataLoaded = await loadWordData();
+        setWordData(wordDataLoaded);
+        const books = getAvailableBooks(wordDataLoaded);
+        setAvailableBooks(books);
+        if (books.length > 0) {
+          setSelectedBook(books[0]);
+        }
       }
       
       setLoading(false);
     }
     fetchData();
   }, [params.id]);
+
+  // 単語帳掲載状況を取得する関数
+  const getWordBookStatus = (word) => {
+    if (!wordData || wordData.length === 0 || !selectedBook) return null;
+    
+    const searchTerm = word.toLowerCase().trim();
+    const entry = wordData.find(
+      row => row.単語?.toLowerCase() === searchTerm && row.単語帳名称 === selectedBook
+    );
+    
+    if (entry) {
+      return {
+        status: entry.掲載区分 === '見出し語' ? 'main' : 'related',
+        number: entry.単語帳内番号 || null,
+        page: entry.ページ数 || null
+      };
+    }
+    return null;
+  };
+
+  // 全単語帳での掲載状況を取得する関数
+  const getAllBookStatuses = (word) => {
+    if (!wordData || wordData.length === 0) return [];
+    
+    const searchTerm = word.toLowerCase().trim();
+    
+    return availableBooks.map(book => {
+      const entry = wordData.find(
+        row => row.単語?.toLowerCase() === searchTerm && row.単語帳名称 === book
+      );
+      
+      if (entry) {
+        return {
+          book,
+          status: entry.掲載区分 === '見出し語' ? 'main' : 'related',
+          number: entry.単語帳内番号 || null,
+          page: entry.ページ数 || null
+        };
+      }
+      return {
+        book,
+        status: 'none',
+        number: null,
+        page: null
+      };
+    });
+  };
+
+  // 単語カードクリック時の処理
+  const handleWordClick = (keyword) => {
+    setSelectedWord(keyword);
+    setShowWordModal(true);
+  };
+
+  // レベル別に単語を分類し、アルファベット順にソート
+  const getWordsByLevelWithStatus = (level) => {
+    const levelKeywords = keywordData.filter(k => k.レベル === level);
+    
+    // アルファベット順にソートし、掲載状況を付与
+    const sortedKeywords = [...levelKeywords].sort((a, b) => 
+      a.単語.toLowerCase().localeCompare(b.単語.toLowerCase())
+    );
+    
+    return sortedKeywords.map(keyword => {
+      const status = getWordBookStatus(keyword.単語);
+      return { ...keyword, bookStatus: status };
+    });
+  };
 
   if (loading) {
     return (
@@ -749,7 +835,179 @@ export default function MondaiDetail() {
           </div>
         )}
 
+        {/* 単語帳掲載状況 */}
+        {keywordData.length > 0 && availableBooks.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">📖 単語帳掲載状況</h2>
+              <select
+                value={selectedBook}
+                onChange={(e) => setSelectedBook(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white min-w-[200px]"
+              >
+                {availableBooks.map(book => (
+                  <option key={book} value={book}>{book}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-4 flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-emerald-100 border border-emerald-300 rounded"></div>
+                <span className="text-gray-700">掲載あり</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-50 border border-gray-200 rounded"></div>
+                <span className="text-gray-700">掲載なし</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {['修練', '上級', '標準', '基礎'].map(level => {
+                const keywords = getWordsByLevelWithStatus(level);
+                
+                if (keywords.length === 0) return null;
+                
+                return (
+                  <div key={level} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="bg-gray-100 px-3 py-2 border-b border-gray-200">
+                      <h3 className="font-semibold text-gray-800 text-sm">
+                        {level === '修練' && '🚀 修練'}
+                        {level === '上級' && '🔬 上級'}
+                        {level === '標準' && '🖋️ 標準'}
+                        {level === '基礎' && '📘 基礎'}
+                        <span className="text-gray-500 font-normal ml-1">({keywords.length}語)</span>
+                      </h3>
+                    </div>
+                    <div className="p-2 space-y-1 max-h-80 overflow-y-auto">
+                      {keywords.map((keyword, idx) => (
+                        keyword.bookStatus ? (
+                          // 掲載されている単語（緑ハイライト）
+                          <button
+                            key={idx}
+                            onClick={() => handleWordClick(keyword)}
+                            className="w-full px-2 py-1.5 bg-emerald-50 border border-emerald-200 rounded text-sm text-left hover:bg-emerald-100 transition-colors cursor-pointer"
+                          >
+                            <div className="font-medium text-gray-900">{keyword.単語}</div>
+                            <div className="text-xs text-emerald-700">
+                              {keyword.bookStatus.number && <span>No.{keyword.bookStatus.number}</span>}
+                              {keyword.bookStatus.number && keyword.bookStatus.page && <span> / </span>}
+                              {keyword.bookStatus.page && <span>p.{keyword.bookStatus.page}</span>}
+                            </div>
+                          </button>
+                        ) : (
+                          // 掲載されていない単語
+                          <button
+                            key={idx}
+                            onClick={() => handleWordClick(keyword)}
+                            className="w-full px-2 py-1.5 bg-gray-50 border border-gray-100 rounded text-sm text-left hover:bg-gray-100 transition-colors cursor-pointer"
+                          >
+                            <div className="text-gray-500">{keyword.単語}</div>
+                          </button>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
       </div>
+
+      {/* 単語詳細モーダル */}
+      {showWordModal && selectedWord && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b bg-emerald-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">{selectedWord.単語}</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {selectedWord.レベル === '修練' && '🚀 修練'}
+                    {selectedWord.レベル === '上級' && '🔬 上級'}
+                    {selectedWord.レベル === '標準' && '🖋️ 標準'}
+                    {selectedWord.レベル === '基礎' && '📘 基礎'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowWordModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">各単語帳での掲載状況</h4>
+              <div className="space-y-2">
+                {getAllBookStatuses(selectedWord.単語).map((item, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                      item.status === 'main'
+                        ? 'bg-emerald-50 border-emerald-200'
+                        : item.status === 'related'
+                        ? 'bg-emerald-50/50 border-emerald-100'
+                        : 'bg-gray-50 border-gray-100'
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <div className={`font-medium ${item.status !== 'none' ? 'text-gray-900' : 'text-gray-400'}`}>
+                        {item.book}
+                      </div>
+                      {item.status !== 'none' && (item.number || item.page) && (
+                        <div className="text-xs text-emerald-700 mt-0.5">
+                          {item.number && <span>No.{item.number}</span>}
+                          {item.number && item.page && <span> / </span>}
+                          {item.page && <span>p.{item.page}</span>}
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-4">
+                      {item.status === 'main' && (
+                        <span className="text-2xl font-bold text-emerald-600">◯</span>
+                      )}
+                      {item.status === 'related' && (
+                        <span className="text-2xl font-bold text-amber-500">△</span>
+                      )}
+                      {item.status === 'none' && (
+                        <span className="text-2xl font-bold text-gray-300">-</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-4 pt-4 border-t flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1">
+                  <span className="text-emerald-600 font-bold">◯</span>
+                  <span>見出し語</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-amber-500 font-bold">△</span>
+                  <span>関連語</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-300 font-bold">-</span>
+                  <span>掲載なし</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t bg-gray-50 flex justify-end">
+              <button
+                onClick={() => setShowWordModal(false)}
+                className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium transition-colors"
+              >
+                閉じる
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .markdown-review h2 {
