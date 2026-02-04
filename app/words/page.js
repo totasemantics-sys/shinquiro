@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Info, ChevronUp, ChevronDown, Filter } from 'lucide-react';
+import { Search, Info, ChevronUp, ChevronDown, Filter, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import { loadWordData, searchWord, getAvailableBooks, getWordBookMatrix } from '@/lib/loadWordData';
 import { loadKeywordData } from '@/lib/loadKeywordData';
 import { loadAllData } from '@/lib/loadData';
 import { loadWordMasterData, getWordInfoGrouped } from '@/lib/loadWordMasterData';
+import { loadTangochoMasterData, getAmazonLinkByBookName } from '@/lib/loadTangochoMasterData';
 
 export default function WordSearch() {
   const router = useRouter();
@@ -47,6 +48,9 @@ export default function WordSearch() {
   // 単語マスター用のstate
   const [wordMasterData, setWordMasterData] = useState([]);
   const [searchedWordInfo, setSearchedWordInfo] = useState([]);
+
+  // 単語帳マスター用のstate（ASIN）
+  const [tangochoMasterData, setTangochoMasterData] = useState([]);
 
   // 大学別検索用のstate
   const [uniSearchFilters, setUniSearchFilters] = useState({
@@ -100,6 +104,10 @@ export default function WordSearch() {
       const wordMaster = await loadWordMasterData();
       setWordMasterData(wordMaster);
       
+      // 単語帳マスターデータを読み込み（ASIN）
+      const tangochoMaster = await loadTangochoMasterData();
+      setTangochoMasterData(tangochoMaster);
+
       setLoading(false);
     }
     fetchData();
@@ -656,6 +664,28 @@ export default function WordSearch() {
     setShowWordDetailModal(true);
   };
 
+  // 単語帳名をレンダリング（Amazonリンク付き）
+  const renderBookName = (bookName) => {
+    const amazonLink = getAmazonLinkByBookName(tangochoMasterData, bookName);
+    
+    if (amazonLink) {
+      return (<a
+        
+          href={amazonLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-gray-800 hover:text-orange-600 transition-colors inline-flex items-center gap-1"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {bookName}
+          <ExternalLink size={14} className="text-orange-500" />
+        </a>
+      );
+    }
+    
+    return <span className="text-gray-800">{bookName}</span>;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
@@ -859,8 +889,8 @@ export default function WordSearch() {
                                 {/* スマホ用: 単語帳名と掲載状況 */}
                                 <td className="md:hidden px-4 py-4">
                                   <div className="flex flex-col gap-1">
-                                    <span className="text-sm font-medium text-gray-800">
-                                      {book}
+                                    <span className="text-sm font-medium">
+                                      {renderBookName(book)}
                                     </span>
                                     <div className="flex items-center gap-2">
                                       <span className={`text-2xl font-bold ${statusInfo.color}`}>
@@ -925,8 +955,8 @@ export default function WordSearch() {
 
                                 {/* PC用: 単語帳名 */}
                                 <td className="hidden md:table-cell px-6 py-5">
-                                  <span className="text-base font-medium text-gray-800">
-                                    {book}
+                                  <span className="text-base font-medium">
+                                    {renderBookName(book)}
                                   </span>
                                 </td>
                                 {/* PC用: 掲載状況 */}
@@ -1262,7 +1292,7 @@ export default function WordSearch() {
             </div>
 
             <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-              <div className="flex items-center justify-center gap-8 text-sm">
+              <div className="flex items-center justify-center gap-8 text-sm mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-bold text-emerald-600">◯</span>
                   <span className="text-gray-700">見出し語掲載</span>
@@ -1276,6 +1306,16 @@ export default function WordSearch() {
                   <span className="text-gray-700">掲載なし</span>
                 </div>
               </div>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3 border-t border-gray-200">
+                <p className="text-sm text-gray-500">※単語帳を変更したら、「比較実行」を押してください</p>
+                <button
+                  onClick={handleCompare}
+                  className="hidden sm:flex px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors items-center gap-2 font-medium text-sm"
+                >
+                  <Search size={18} />
+                  比較実行
+                </button>
+              </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -1284,7 +1324,18 @@ export default function WordSearch() {
                   <thead className="bg-gray-100 border-b-2 border-gray-200">
                     <tr>
                       <th className="px-4 py-4 text-left text-sm font-semibold text-gray-700 w-32">
-                        単語
+                        <div className="flex flex-col gap-2">
+                          <span>単語</span>
+                          <button
+                            onClick={() => {
+                              setCompareWords(Array(compareRowCount).fill(''));
+                              setCompareResults({});
+                            }}
+                            className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors"
+                          >
+                            すべてクリア
+                          </button>
+                        </div>
                       </th>
                       {compareBooks.map((book, idx) => (
                         <th key={idx} className="px-2 py-4 text-center">
