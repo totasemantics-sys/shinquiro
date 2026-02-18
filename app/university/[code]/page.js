@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, Home } from 'lucide-react';
 import { loadAllData, getUniversityName, getUniversityCodeFromId } from '@/lib/loadData';
 import Header from '@/app/components/Header';
+import Footer from '@/app/components/Footer';
 
 export default function UniversityPage({ params }) {
   const router = useRouter();
@@ -480,11 +481,7 @@ export default function UniversityPage({ params }) {
         )}
       </div>
 
-      <footer className="bg-white border-t mt-12 py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
-          <p>© 2025 SHINQUIRO</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

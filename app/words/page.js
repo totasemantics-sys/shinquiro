@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Search, Info, ChevronUp, ChevronDown, Filter, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { loadWordData, searchWord, getAvailableBooks, getWordBookMatrix } from '@/lib/loadWordData';
 import { loadKeywordData } from '@/lib/loadKeywordData';
 import { loadAllData } from '@/lib/loadData';
@@ -1999,11 +2000,7 @@ export default function WordSearch() {
         />
       )}
 
-      <footer className="bg-white border-t mt-12 py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
-          <p>© 2025 SHINQUIRO</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

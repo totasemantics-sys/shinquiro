@@ -6,6 +6,7 @@ import { Search, Hash, X, RotateCcw, ChevronUp, ChevronDown, Info, ExternalLink 
 import { loadAllData, getUniversityCodeFromId } from '@/lib/loadData';
 import ReactMarkdown from 'react-markdown';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { loadKeywordData } from '@/lib/loadKeywordData';
 
 export default function Home() {
@@ -1596,11 +1597,7 @@ export default function Home() {
           </div>
         )}  
 
-      <footer className="bg-white border-t mt-12 py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
-          <p>© 2025 SHINQUIRO</p>
-        </div>
-      </footer>
+      <Footer />
 
       <style jsx>{`
         @keyframes slide-down {

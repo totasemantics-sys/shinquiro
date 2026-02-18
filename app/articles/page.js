@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FileText, Calendar, Tag, Filter } from 'lucide-react';
 import Header from '../components/Header';
-import { loadArticlesData, getCategories, filterByCategory, sortByDate } from '@/lib/loadArticlesData';
+import Footer from '../components/Footer';
+import { loadArticlesData, getCategories, filterByCategory, sortByDate, getArticleImagePath } from '@/lib/loadArticlesData';
 
 export default function ArticlesList() {
   const [articles, setArticles] = useState([]);
@@ -97,35 +98,52 @@ export default function ArticlesList() {
         <div className="space-y-4">
           {filteredArticles.map((article) => (
             <Link key={article.slug} href={`/articles/${article.slug}`}>
-              <article className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 cursor-pointer">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(article.category)}`}>
-                    {article.category}
-                  </span>
-                  <div className="flex items-center gap-1 text-sm text-gray-500">
-                    <Calendar size={14} />
-                    {article.date}
-                  </div>
+              <article className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer">
+                <div className="aspect-[1200/630] relative bg-gray-100">
+                  <img
+                    src={getArticleImagePath(article)}
+                    alt={article.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const defaults = {
+                        '出題分析': '/images/articles/defaults/default-analysis.svg',
+                        '書籍レビュー': '/images/articles/defaults/default-review.svg',
+                        'コラム': '/images/articles/defaults/default-column.svg',
+                      };
+                      e.target.src = defaults[article.category] || '/images/articles/defaults/default-analysis.svg';
+                    }}
+                  />
                 </div>
-
-                <h2 className="text-xl font-bold text-gray-800 mb-2 hover:text-emerald-600 transition-colors">
-                  {article.title}
-                </h2>
-
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  {article.description}
-                </p>
-
-                {article.tags.length > 0 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Tag size={14} className="text-gray-400" />
-                    {article.tags.map((tag, idx) => (
-                      <span key={idx} className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                        #{tag}
-                      </span>
-                    ))}
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(article.category)}`}>
+                      {article.category}
+                    </span>
+                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                      <Calendar size={14} />
+                      {article.date}
+                    </div>
                   </div>
-                )}
+
+                  <h2 className="text-xl font-bold text-gray-800 mb-2 hover:text-emerald-600 transition-colors">
+                    {article.title}
+                  </h2>
+
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    {article.description}
+                  </p>
+
+                  {article.tags.length > 0 && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Tag size={14} className="text-gray-400" />
+                      {article.tags.map((tag, idx) => (
+                        <span key={idx} className="text-xs text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </article>
             </Link>
           ))}
@@ -139,11 +157,7 @@ export default function ArticlesList() {
         </div>
       </div>
 
-      <footer className="bg-white border-t mt-12 py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
-          <p>© 2025 SHINQUIRO</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

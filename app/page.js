@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Search, BookOpen, FileText } from 'lucide-react';
 import Header from './components/Header';
+import Footer from './components/Footer';
 
 export default function Home() {
   return (
@@ -32,10 +33,12 @@ export default function Home() {
           {/* 長文検索 */}
           <Link href="/search" className="group">
             <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-8 h-full border-2 border-transparent hover:border-emerald-500">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-emerald-500 transition-colors">
-                <Search className="w-8 h-8 text-emerald-600 group-hover:text-white transition-colors" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-500 transition-colors">
+                  <Search className="w-7 h-7 text-emerald-600 group-hover:text-white transition-colors" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-800">長文検索</h2>
               </div>
-              <h2 className="text-xl font-bold text-gray-800 mb-3">長文検索</h2>
               <p className="text-gray-600 mb-4">
                 大学・年度・設問形式・テーマなど、多角的な条件で英語長文を検索できます。
               </p>
@@ -48,10 +51,12 @@ export default function Home() {
           {/* 単語検索 */}
           <Link href="/words" className="group">
             <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-8 h-full border-2 border-transparent hover:border-emerald-500">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-500 transition-colors">
-                <BookOpen className="w-8 h-8 text-blue-600 group-hover:text-white transition-colors" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-blue-500 transition-colors">
+                  <BookOpen className="w-7 h-7 text-blue-600 group-hover:text-white transition-colors" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-800">単語検索</h2>
               </div>
-              <h2 className="text-xl font-bold text-gray-800 mb-3">単語検索</h2>
               <p className="text-gray-600 mb-4">
                 英単語が各単語帳に掲載されているかを一括チェック。大学別の頻出単語も検索できます。
               </p>
@@ -64,13 +69,15 @@ export default function Home() {
           {/* 記事（準備中） */}
           <div className="group">
             <div className="bg-white rounded-xl shadow-md p-8 h-full border-2 border-transparent opacity-60">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                <FileText className="w-8 h-8 text-gray-400" />
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-7 h-7 text-gray-400" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  記事
+                  <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">準備中</span>
+                </h2>
               </div>
-              <h2 className="text-xl font-bold text-gray-800 mb-3">
-                記事
-                <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded">準備中</span>
-              </h2>
               <p className="text-gray-600 mb-4">
                 出題傾向の分析や学習法など、大学受験英語に役立つ情報を発信予定です。
               </p>
@@ -110,11 +117,7 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className="bg-white border-t py-6">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-600">
-          <p>© 2025 SHINQUIRO</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

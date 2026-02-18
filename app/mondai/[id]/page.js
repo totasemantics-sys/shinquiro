@@ -8,6 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import { loadKeywordData, getKeywordsByMondaiId, getKeywordCountByLevel, filterKeywordsByLevels } from '@/lib/loadKeywordData';
 import { loadWordData, getAvailableBooks } from '@/lib/loadWordData';
 import Header from '@/app/components/Header';
+import Footer from '@/app/components/Footer';
 
 export default function MondaiDetail() {
   const params = useParams();
@@ -1042,6 +1043,7 @@ export default function MondaiDetail() {
           font-weight: 600;
         }
       `}</style>
+      <Footer />
     </div>
   );
 }
