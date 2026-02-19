@@ -5,8 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { ChevronLeft, ExternalLink, ChevronRight, Home } from 'lucide-react';
 import { loadAllData, getUniversityCodeFromId, getUniversityName } from '@/lib/loadData';
 import ReactMarkdown from 'react-markdown';
-import { loadKeywordData, getKeywordsByMondaiId, getKeywordCountByLevel, filterKeywordsByLevels } from '@/lib/loadKeywordData';
+import { loadKeywordData, getKeywordsByMondaiId, getKeywordCountByLevel, filterKeywordsByLevelsUnique } from '@/lib/loadKeywordData';
 import { loadWordData, getAvailableBooks } from '@/lib/loadWordData';
+import { loadWordMasterData } from '@/lib/loadWordMasterData';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
 
@@ -30,6 +31,15 @@ export default function MondaiDetail() {
   const [currentKeywordIndex, setCurrentKeywordIndex] = useState(0);
   const [keywordAnswers, setKeywordAnswers] = useState([]);
   const [shuffledKeywords, setShuffledKeywords] = useState([]);
+  const [showMeaning, setShowMeaning] = useState(false);
+  const [showListMeaning, setShowListMeaning] = useState(true);
+  const [selectedPosFilters, setSelectedPosFilters] = useState(['動詞', '名詞', '形容詞副詞', 'その他']);
+  const [checkPosFilters, setCheckPosFilters] = useState(['動詞', '名詞', '形容詞副詞', 'その他']);
+  const [hideKeywordOnly, setHideKeywordOnly] = useState(true);
+  const [activeListLevel, setActiveListLevel] = useState(null);
+
+  // word_master用のstate
+  const [wordMasterData, setWordMasterData] = useState([]);
 
   // 単語帳掲載状況用のstate
   const [wordData, setWordData] = useState([]);
@@ -78,6 +88,15 @@ export default function MondaiDetail() {
         const keywords = await loadKeywordData();
         const mondaiKeywords = getKeywordsByMondaiId(keywords, found.大問ID);
         setKeywordData(mondaiKeywords);
+        // 一覧モードの初期タブを設定
+        const firstLevel = ['修練', '上級', '標準', '基礎'].find(
+          l => mondaiKeywords.some(k => k.レベル === l)
+        );
+        if (firstLevel) setActiveListLevel(firstLevel);
+
+        // word_masterデータを読み込み
+        const wordMasterLoaded = await loadWordMasterData();
+        setWordMasterData(wordMasterLoaded);
 
         // 単語帳データを読み込み
         const wordDataLoaded = await loadWordData();
@@ -141,10 +160,115 @@ export default function MondaiDetail() {
     });
   };
 
+  // チェックモード用：現在の単語の品詞+レベル一覧を取得（keywords.csv + word_master.csv）
+  const getPartOfSpeechTags = (word) => {
+    const tags = [];
+    const seen = new Set();
+
+    // keywords.csvから（この大問の同じ単語の全行）
+    keywordData.filter(k => k.単語 === word).forEach(k => {
+      if (k.品詞) {
+        const key = `${k.品詞}|${k.レベル}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          tags.push({ 品詞: k.品詞, レベル: k.レベル, source: 'keyword' });
+        }
+      }
+    });
+
+    // word_master.csvから（原形で照合）
+    const normalizedWord = word.toLowerCase().trim();
+    const masterEntries = wordMasterData.filter(
+      row => row.原形 && row.原形.toLowerCase().trim() === normalizedWord
+    );
+    // 品詞+レベルでユニーク化
+    masterEntries.forEach(m => {
+      if (m.品詞) {
+        const key = `${m.品詞}|${m.レベル}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          tags.push({ 品詞: m.品詞, レベル: m.レベル, source: 'master' });
+        }
+      }
+    });
+
+    return tags;
+  };
+
+  // チェックモード用：品詞グループ別の意味一覧を取得
+  const getMeaningsByPartOfSpeech = (word) => {
+    const normalizedWord = word.toLowerCase().trim();
+
+    // keywords.csvからこの単語の全エントリ
+    const keywordEntries = keywordData.filter(k => k.単語 === word);
+
+    // word_master.csvから原形で照合
+    const masterEntries = wordMasterData.filter(
+      row => row.原形 && row.原形.toLowerCase().trim() === normalizedWord
+    );
+    // 品詞・意味でユニーク化
+    const uniqueMaster = [];
+    const masterSeen = new Set();
+    masterEntries.forEach(m => {
+      const key = `${m.品詞}|${m.意味}`;
+      if (!masterSeen.has(key)) {
+        masterSeen.add(key);
+        uniqueMaster.push(m);
+      }
+    });
+
+    // keywords.csvの意味セット（ハイライト判定用）
+    const keywordMeanings = new Set(keywordEntries.map(k => `${k.品詞}|${k.意味}`));
+
+    // 品詞でグルーピング
+    const posGroups = new Map();
+
+    // まずword_masterの意味を追加
+    uniqueMaster.forEach(m => {
+      if (!posGroups.has(m.品詞)) {
+        posGroups.set(m.品詞, []);
+      }
+      posGroups.get(m.品詞).push({
+        意味: m.意味,
+        レベル: m.レベル,
+        isKeyword: keywordMeanings.has(`${m.品詞}|${m.意味}`),
+        source: 'master'
+      });
+    });
+
+    // keywords.csvにあってword_masterにない意味を追加
+    keywordEntries.forEach(k => {
+      if (!posGroups.has(k.品詞)) {
+        posGroups.set(k.品詞, []);
+      }
+      const group = posGroups.get(k.品詞);
+      const exists = group.some(item => item.意味 === k.意味);
+      if (!exists) {
+        group.push({
+          意味: k.意味,
+          レベル: k.レベル,
+          isKeyword: true,
+          source: 'keyword'
+        });
+      }
+    });
+
+    return posGroups;
+  };
+
   // 単語カードクリック時の処理
   const handleWordClick = (keyword) => {
     setSelectedWord(keyword);
     setShowWordModal(true);
+  };
+
+  // 品詞フィルタのマッチ判定
+  const matchesPosFilter = (pos, filters) => {
+    if (filters.includes('動詞') && pos === '動詞') return true;
+    if (filters.includes('名詞') && pos === '名詞') return true;
+    if (filters.includes('形容詞副詞') && (pos === '形容詞' || pos === '副詞')) return true;
+    if (filters.includes('その他') && !['動詞', '名詞', '形容詞', '副詞'].includes(pos)) return true;
+    return false;
   };
 
   // レベル別に単語を分類し、アルファベット順にソート
@@ -360,11 +484,27 @@ export default function MondaiDetail() {
           </div>
         )}
 
+        <div className="flex justify-end mb-2">
+          <a
+            href="https://forms.gle/KiNp1WfdF5xYDHhC7"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-emerald-600 hover:underline"
+          >
+            データの修正を依頼
+          </a>
+        </div>
+
         {/* 重要単語 */}
         {keywordData.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">📚 重要単語</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold text-gray-900">📚 重要単語</h2>
+                {(keywordMode === 'select-level' || keywordMode === 'check' || keywordMode === 'result') && (
+                  <span className="text-xs text-gray-400"><span className="bg-pink-100 px-1 rounded">　</span> この大問で出現した意味</span>
+                )}
+              </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setKeywordMode('list')}
@@ -399,7 +539,7 @@ export default function MondaiDetail() {
                         .filter(k => selectedKeywords.includes(k.単語))
                         .map(k => k.単語)
                         .join('\n');
-                      
+
                       if (checkedWords) {
                         navigator.clipboard.writeText(checkedWords).then(() => {
                           alert(`${selectedKeywords.length}個の単語をコピーしました`);
@@ -427,65 +567,135 @@ export default function MondaiDetail() {
                     }}
                     className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors text-sm font-medium"
                   >
-                    ✓の単語を単語帳比較へ
+                    ✓の単語を<wbr />単語帳比較へ
                   </button>
+                  <div className="flex-1" />
+                  <span className="text-xs text-gray-400 hidden md:inline">※この大問で出現した意味を優先的に表示</span>
+                  <label className="flex items-center gap-2 cursor-pointer select-none flex-shrink-0">
+                    <span className="text-sm text-gray-600">意味表示</span>
+                    <div
+                      onClick={() => setShowListMeaning(!showListMeaning)}
+                      className={`relative w-10 h-5 rounded-full transition-colors ${showListMeaning ? 'bg-emerald-600' : 'bg-gray-300'}`}
+                    >
+                      <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${showListMeaning ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    </div>
+                  </label>
                 </div>
-                
-                <div className="space-y-6 max-w-5xl">
+                <div className="md:hidden text-right mb-2">
+                  <span className="text-xs text-gray-400">※この大問で出現した意味を優先的に表示</span>
+                </div>
+
+                {/* 品詞フィルタ */}
+                {(() => {
+                  const posCategories = [
+                    { key: '動詞', label: '動詞' },
+                    { key: '名詞', label: '名詞' },
+                    { key: '形容詞副詞', label: '形容詞副詞' },
+                    { key: 'その他', label: 'その他' },
+                  ];
+                  return (
+                    <div className="flex justify-center gap-2 mb-3">
+                      {posCategories.map(cat => {
+                        const isActive = selectedPosFilters.includes(cat.key);
+                        return (
+                          <button
+                            key={cat.key}
+                            onClick={() => {
+                              if (isActive) {
+                                if (selectedPosFilters.length > 1) {
+                                  setSelectedPosFilters(selectedPosFilters.filter(f => f !== cat.key));
+                                }
+                              } else {
+                                setSelectedPosFilters([...selectedPosFilters, cat.key]);
+                              }
+                            }}
+                            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                              isActive
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                            }`}
+                          >
+                            {cat.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {/* レベルタブ */}
+                <div className="flex gap-1 border-b border-gray-200 mb-4">
                   {['修練', '上級', '標準', '基礎'].map(level => {
-                    const levelKeywords = keywordData.filter(k => k.レベル === level);
-                    if (levelKeywords.length === 0) return null;
-                    
+                    const count = keywordData.filter(k => k.レベル === level && matchesPosFilter(k.品詞, selectedPosFilters)).length;
+                    if (count === 0) return null;
+                    const isActive = activeListLevel === level;
                     return (
-                      <div key={level}>
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="text-lg font-semibold text-gray-800">
-                            {level === '修練' && '🚀 修練'}
-                            {level === '上級' && '🔬 上級'}
-                            {level === '標準' && '🖋️ 標準'}
-                            {level === '基礎' && '📘 基礎'}
-                            <span className="text-sm text-gray-500 ml-2">({levelKeywords.length}語)</span>
-                          </h3>
-                          <div className="flex gap-2">
+                      <button
+                        key={level}
+                        onClick={() => setActiveListLevel(level)}
+                        className={`px-4 py-2.5 text-base font-bold transition-colors border-b-2 -mb-px ${
+                          isActive
+                            ? 'border-emerald-600 text-emerald-700'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        {level === '修練' && '🚀 修練'}
+                        {level === '上級' && '🔬 上級'}
+                        {level === '標準' && '🖋️ 標準'}
+                        {level === '基礎' && '📘 基礎'}
+                        <span className="text-xs ml-1">({count})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* アクティブなレベルの単語一覧 */}
+                {(() => {
+                  const levelKeywords = keywordData.filter(k => k.レベル === activeListLevel && matchesPosFilter(k.品詞, selectedPosFilters));
+                  if (levelKeywords.length === 0) return null;
+
+                  return (
+                    <div>
+                      <div className="flex items-center justify-end gap-2 mb-3">
+                        <button
+                          onClick={() => {
+                            const levelWords = levelKeywords.map(k => k.単語);
+                            setSelectedKeywords([...new Set([...selectedKeywords, ...levelWords])]);
+                          }}
+                          className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          すべて選択
+                        </button>
+                        <button
+                          onClick={() => {
+                            const levelWords = levelKeywords.map(k => k.単語);
+                            setSelectedKeywords(selectedKeywords.filter(w => !levelWords.includes(w)));
+                          }}
+                          className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          すべて解除
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {levelKeywords.map((keyword, idx) => {
+                          const isSelected = selectedKeywords.includes(keyword.単語);
+                          return (
                             <button
+                              key={idx}
                               onClick={() => {
-                                const levelWords = levelKeywords.map(k => k.単語);
-                                setSelectedKeywords([...new Set([...selectedKeywords, ...levelWords])]);
+                                if (isSelected) {
+                                  setSelectedKeywords(selectedKeywords.filter(w => w !== keyword.単語));
+                                } else {
+                                  setSelectedKeywords([...selectedKeywords, keyword.単語]);
+                                }
                               }}
-                              className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                              className={`flex flex-col p-3 rounded-md transition-colors text-left ${
+                                isSelected
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                              }`}
                             >
-                              すべて選択
-                            </button>
-                            <button
-                              onClick={() => {
-                                const levelWords = levelKeywords.map(k => k.単語);
-                                setSelectedKeywords(selectedKeywords.filter(w => !levelWords.includes(w)));
-                              }}
-                              className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                            >
-                              すべて解除
-                            </button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                          {levelKeywords.map((keyword, idx) => {
-                            const isSelected = selectedKeywords.includes(keyword.単語);
-                            return (
-                              <button
-                                key={idx}
-                                onClick={() => {
-                                  if (isSelected) {
-                                    setSelectedKeywords(selectedKeywords.filter(w => w !== keyword.単語));
-                                  } else {
-                                    setSelectedKeywords([...selectedKeywords, keyword.単語]);
-                                  }
-                                }}
-                                className={`flex items-center gap-2 p-3 rounded-md transition-colors text-left ${
-                                  isSelected
-                                    ? 'bg-emerald-500 text-white'
-                                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                                }`}
-                              >
+                              <div className="flex items-center gap-2">
                                 <span className="flex-shrink-0 w-4 h-4 border-2 rounded flex items-center justify-center" style={{
                                   borderColor: isSelected ? 'white' : '#d1d5db',
                                   backgroundColor: isSelected ? 'white' : 'transparent'
@@ -493,150 +703,298 @@ export default function MondaiDetail() {
                                   {isSelected && <span className="text-emerald-600 text-xs font-bold">✓</span>}
                                 </span>
                                 <span className="text-sm font-medium truncate">{keyword.単語}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
+                              </div>
+                              <div className={`flex items-center gap-1 mt-1 ml-6 text-xs ${
+                                isSelected ? 'text-white' : 'text-gray-500'
+                              }`}>
+                                {keyword.品詞 && (
+                                  <span className="flex-shrink-0">{keyword.品詞.charAt(0)})</span>
+                                )}
+                                {showListMeaning && keyword.意味 && (
+                                  <span className={`truncate ${isSelected ? '' : 'text-gray-800'}`}>
+                                    {keyword.意味}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
             {/* チェックモード（レベル選択） */}
             {keywordMode === 'select-level' && (
               <div className="text-center py-8">
-                <h3 className="text-lg font-semibold text-gray-800 mb-6">学習するレベルを選択</h3>
-                <div className="space-y-3 max-w-md mx-auto">
-                  {['修練', '上級', '標準', '基礎'].map(level => {
-                    const count = keywordData.filter(k => k.レベル === level).length;
-                    const isDisabled = count === 0;
-                    const isSelected = selectedLevels.includes(level);
-                    
-                    return (
-                      <button
-                        key={level}
-                        disabled={isDisabled}
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedLevels(selectedLevels.filter(l => l !== level));
-                          } else {
-                            setSelectedLevels([...selectedLevels, level]);
-                          }
-                        }}
-                        className={`w-full px-6 py-4 rounded-lg text-left transition-colors ${
-                          isDisabled
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : isSelected
-                            ? 'bg-emerald-500 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">
-                            {level === '修練' && '🚀 修練'}
-                            {level === '上級' && '🔬 上級'}
-                            {level === '標準' && '🖋️ 標準'}
-                            {level === '基礎' && '📘 基礎'}
-                          </span>
-                          <span className="text-sm">({count}語)</span>
-                        </div>
-                      </button>
-                    );
-                  })}
+                <h3 className="text-lg font-semibold text-gray-800 mb-6">学習する品詞・レベルを選択</h3>
+                <div className="flex items-start justify-center gap-4 max-w-2xl mx-auto">
+                  {/* 品詞選択 */}
+                  <div className="space-y-3 flex-1">
+                    {[
+                      { key: '動詞', label: '動詞' },
+                      { key: '名詞', label: '名詞' },
+                      { key: '形容詞副詞', label: '形容詞副詞' },
+                      { key: 'その他', label: 'その他' },
+                    ].map(cat => {
+                      const isSelected = checkPosFilters.includes(cat.key);
+                      return (
+                        <button
+                          key={cat.key}
+                          onClick={() => {
+                            if (isSelected) {
+                              if (checkPosFilters.length > 1) {
+                                setCheckPosFilters(checkPosFilters.filter(f => f !== cat.key));
+                              }
+                            } else {
+                              setCheckPosFilters([...checkPosFilters, cat.key]);
+                            }
+                          }}
+                          className={`w-full px-6 py-4 rounded-lg text-left transition-colors ${
+                            isSelected
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          <span className="font-medium">{cat.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* ×マーク */}
+                  <div className="flex items-center self-center text-2xl font-bold text-gray-400 px-1">×</div>
+
+                  {/* レベル選択 */}
+                  <div className="space-y-3 flex-1">
+                    {['修練', '上級', '標準', '基礎'].map(level => {
+                      const count = new Set(keywordData.filter(k => k.レベル === level && matchesPosFilter(k.品詞, checkPosFilters)).map(k => k.単語)).size;
+                      const isDisabled = count === 0;
+                      const isSelected = selectedLevels.includes(level);
+
+                      return (
+                        <button
+                          key={level}
+                          disabled={isDisabled}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedLevels(selectedLevels.filter(l => l !== level));
+                            } else {
+                              setSelectedLevels([...selectedLevels, level]);
+                            }
+                          }}
+                          className={`w-full px-6 py-4 rounded-lg text-left transition-colors ${
+                            isDisabled
+                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                              : isSelected
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">
+                              {level === '修練' && '🚀 修練'}
+                              {level === '上級' && '🔬 上級'}
+                              {level === '標準' && '🖋️ 標準'}
+                              {level === '基礎' && '📘 基礎'}
+                            </span>
+                            <span className="text-sm">({count}語)</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                
-                {selectedLevels.length > 0 && (
-                  <button
-                    onClick={() => {
-                      const filtered = filterKeywordsByLevels(keywordData, selectedLevels);
-                      const shuffled = [...filtered].sort(() => Math.random() - 0.5);
-                      setShuffledKeywords(shuffled);
-                      setCurrentKeywordIndex(0);
-                      setKeywordAnswers([]);
-                      setKeywordMode('check');
-                    }}
-                    className="mt-8 px-8 py-3 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors font-medium"
+
+                {/* 出題意味のみ隠すトグル + 開始ボタン */}
+                <div className="mt-8 flex flex-col items-center gap-3">
+                  <span className={`text-sm transition-colors ${hideKeywordOnly ? 'text-gray-800' : 'text-gray-400'}`}>
+                    この大問で出題された意味<span className="font-bold">のみ</span>をチェック
+                  </span>
+                  <div
+                    onClick={() => setHideKeywordOnly(!hideKeywordOnly)}
+                    className={`relative w-12 h-6 rounded-full transition-colors cursor-pointer ${hideKeywordOnly ? 'bg-pink-300' : 'bg-gray-300'}`}
                   >
-                    開始
-                  </button>
-                )}
+                    <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${hideKeywordOnly ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                  </div>
+
+                  {selectedLevels.length > 0 && (
+                    <button
+                      onClick={() => {
+                        const posFiltered = keywordData.filter(k => matchesPosFilter(k.品詞, checkPosFilters));
+                        const filtered = filterKeywordsByLevelsUnique(posFiltered, selectedLevels);
+                        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+                        setShuffledKeywords(shuffled);
+                        setCurrentKeywordIndex(0);
+                        setKeywordAnswers([]);
+                        setShowMeaning(false);
+                        setKeywordMode('check');
+                      }}
+                      className="mt-4 px-8 py-3 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors font-medium"
+                    >
+                      開始
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
             {/* チェックモード（単語チェック中） */}
             {keywordMode === 'check' && shuffledKeywords.length > 0 && (
-              <div className="text-center py-8">
-                {/* プログレスバー */}
-                <div className="max-w-md mx-auto mb-8">
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="py-8">
+                {/* プログレスバー + カウンター */}
+                <div className="max-w-md mx-auto mb-8 flex items-center gap-3">
+                  <div className="flex-1 bg-gray-200 rounded-full h-3">
                     <div
                       className="bg-emerald-600 h-3 rounded-full transition-all"
                       style={{ width: `${(currentKeywordIndex / shuffledKeywords.length) * 100}%` }}
                     />
                   </div>
+                  <div className="text-sm text-gray-500 whitespace-nowrap">
+                    {currentKeywordIndex + 1} / {shuffledKeywords.length}
+                  </div>
                 </div>
 
-                <div className="text-sm text-gray-600 mb-4">
-                  レベル: {selectedLevels.join('・')}
-                </div>
-
-                <div className="text-5xl font-bold text-gray-900 mb-4">
+                <div className="text-center text-5xl font-bold text-gray-900 mb-8">
                   {shuffledKeywords[currentKeywordIndex].単語}
                 </div>
 
-                <div className="text-lg text-gray-600 mb-8">
-                  {shuffledKeywords[currentKeywordIndex].レベル === '修練' && '🚀 修練'}
-                  {shuffledKeywords[currentKeywordIndex].レベル === '上級' && '🔬 上級'}
-                  {shuffledKeywords[currentKeywordIndex].レベル === '標準' && '🖋️ 標準'}
-                  {shuffledKeywords[currentKeywordIndex].レベル === '基礎' && '📘 基礎'}
+                {/* 品詞+レベル（左）＋ 意味（右） */}
+                <div className="max-w-sm mx-auto mb-10">
+                  {(() => {
+                    const tags = getPartOfSpeechTags(shuffledKeywords[currentKeywordIndex].単語);
+                    const allMeanings = getMeaningsByPartOfSpeech(shuffledKeywords[currentKeywordIndex].単語);
+
+                    return (
+                      <div className="space-y-2">
+                        {tags.map((tag, idx) => {
+                          const posMeanings = allMeanings.get(tag.品詞) || [];
+                          // 同じ品詞のタグが複数ある場合、意味は最初のタグにだけ表示
+                          const isFirstOfPos = tags.findIndex(t => t.品詞 === tag.品詞) === idx;
+
+                          return (
+                            <div key={idx} className="flex items-start gap-4">
+                              <span className="flex-shrink-0 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                                {tag.品詞} <span className="text-xs text-gray-500">{tag.レベル}</span>
+                              </span>
+                              <div className="flex-1 min-h-[32px] flex items-start">
+                                {isFirstOfPos && posMeanings.length > 0 ? (
+                                  <div className="space-y-1">
+                                    {posMeanings.map((m, mIdx) => {
+                                      // showMeaning: すべて表示
+                                      if (showMeaning) {
+                                        return (
+                                          <div key={mIdx} className={`text-lg px-2 rounded ${m.isKeyword ? 'text-gray-900 font-bold bg-pink-100' : 'text-gray-400'}`}>
+                                            {m.意味}
+                                          </div>
+                                        );
+                                      }
+                                      // hideKeywordOnly ON: keyword意味はピンクブロック、非keyword意味は表示
+                                      if (hideKeywordOnly) {
+                                        return m.isKeyword ? (
+                                          <div key={mIdx} className="bg-pink-100 rounded px-2 min-h-[28px] w-24" />
+                                        ) : (
+                                          <div key={mIdx} className="text-lg px-2 rounded text-gray-400">
+                                            {m.意味}
+                                          </div>
+                                        );
+                                      }
+                                      // hideKeywordOnly OFF: すべて非表示
+                                      return null;
+                                    })}
+                                    {/* hideKeywordOnly OFF時、keyword意味があればピンクブロック1つ表示 */}
+                                    {!showMeaning && !hideKeywordOnly && posMeanings.some(m => m.isKeyword) && (
+                                      <div className="bg-pink-100 rounded px-2 min-h-[28px] w-24" />
+                                    )}
+                                  </div>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
 
-                <div className="text-2xl text-gray-500 mb-12">
-                  {currentKeywordIndex + 1} / {shuffledKeywords.length}
-                </div>
+                {/* ボタンエリア（幅を統一するためrefで計測） */}
+                {!showMeaning ? (
+                  <div className="flex justify-center">
+                    <div className="inline-flex gap-4">
+                      {/* 非表示の自信なし・自信ありで幅を確保し、意味を見るボタンをフル幅で重ねる */}
+                      <div className="relative">
+                        <div className="invisible flex gap-4">
+                          <span className="px-8 py-4 text-lg font-medium">自信なし</span>
+                          <span className="px-8 py-4 text-lg font-medium">自信あり</span>
+                        </div>
+                        <button
+                          onClick={() => setShowMeaning(true)}
+                          className="absolute inset-0 w-full bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-lg"
+                        >
+                          意味を見る
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-center">
+                      <div className="inline-flex gap-4">
+                      <button
+                        onClick={() => {
+                          const current = shuffledKeywords[currentKeywordIndex];
+                          const keywordEntries = keywordData.filter(k => k.単語 === current.単語);
+                          const newAnswers = [...keywordAnswers, {
+                            word: current.単語,
+                            pos: keywordEntries[0]?.品詞 || '',
+                            meaning: keywordEntries.map(k => k.意味).filter(Boolean).join(', '),
+                            levels: current.allLevels || [current.レベル],
+                            confident: false
+                          }];
+                          setKeywordAnswers(newAnswers);
+                          setShowMeaning(false);
 
-                <div className="flex gap-4 justify-center">
-                  <button
-                    onClick={() => {
-                      const newAnswers = [...keywordAnswers, {
-                        word: shuffledKeywords[currentKeywordIndex].単語,
-                        level: shuffledKeywords[currentKeywordIndex].レベル,
-                        confident: false
-                      }];
-                      setKeywordAnswers(newAnswers);
-                      
-                      if (currentKeywordIndex + 1 < shuffledKeywords.length) {
-                        setCurrentKeywordIndex(currentKeywordIndex + 1);
-                      } else {
-                        setKeywordMode('result');
-                      }
-                    }}
-                    className="px-8 py-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium text-lg"
-                  >
-                    自信なし
-                  </button>
-                  <button
-                    onClick={() => {
-                      const newAnswers = [...keywordAnswers, {
-                        word: shuffledKeywords[currentKeywordIndex].単語,
-                        level: shuffledKeywords[currentKeywordIndex].レベル,
-                        confident: true
-                      }];
-                      setKeywordAnswers(newAnswers);
-                      
-                      if (currentKeywordIndex + 1 < shuffledKeywords.length) {
-                        setCurrentKeywordIndex(currentKeywordIndex + 1);
-                      } else {
-                        setKeywordMode('result');
-                      }
-                    }}
-                    className="px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-lg"
-                  >
-                    自信あり
-                  </button>
-                </div>
+                          if (currentKeywordIndex + 1 < shuffledKeywords.length) {
+                            setCurrentKeywordIndex(currentKeywordIndex + 1);
+                          } else {
+                            setKeywordMode('result');
+                          }
+                        }}
+                        className="px-8 py-4 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium text-lg"
+                      >
+                        自信なし
+                      </button>
+                      <button
+                        onClick={() => {
+                          const current = shuffledKeywords[currentKeywordIndex];
+                          const keywordEntries = keywordData.filter(k => k.単語 === current.単語);
+                          const newAnswers = [...keywordAnswers, {
+                            word: current.単語,
+                            pos: keywordEntries[0]?.品詞 || '',
+                            meaning: keywordEntries.map(k => k.意味).filter(Boolean).join(', '),
+                            levels: current.allLevels || [current.レベル],
+                            confident: true
+                          }];
+                          setKeywordAnswers(newAnswers);
+                          setShowMeaning(false);
+
+                          if (currentKeywordIndex + 1 < shuffledKeywords.length) {
+                            setCurrentKeywordIndex(currentKeywordIndex + 1);
+                          } else {
+                            setKeywordMode('result');
+                          }
+                        }}
+                        className="px-8 py-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-lg"
+                      >
+                        自信あり
+                      </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
               </div>
             )}
 
@@ -741,12 +1099,18 @@ export default function MondaiDetail() {
                             }}>
                               {isSelected && <span className="text-red-600 font-bold">✓</span>}
                             </span>
-                            <span className="flex-1">{answer.word}</span>
-                            <span className="text-sm">
-                              {answer.level === '修練' && '🚀'}
-                              {answer.level === '上級' && '🔬'}
-                              {answer.level === '標準' && '🖋️'}
-                              {answer.level === '基礎' && '📘'}
+                            <div className="flex-1 min-w-0">
+                              <div>{answer.word}</div>
+                              {answer.pos && (
+                                <div className={`text-xs truncate ${isSelected ? 'text-red-100' : 'text-gray-500'}`}>
+                                  {answer.pos.charAt(0)}）{answer.meaning}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-sm flex-shrink-0">
+                              {(answer.levels || [answer.level]).map(l =>
+                                l === '修練' ? '🚀' : l === '上級' ? '🔬' : l === '標準' ? '🖋️' : l === '基礎' ? '📘' : ''
+                              ).join(' ')}
                             </span>
                           </button>
                         );
@@ -805,12 +1169,18 @@ export default function MondaiDetail() {
                             }}>
                               {isSelected && <span className="text-emerald-600 font-bold">✓</span>}
                             </span>
-                            <span className="flex-1">{answer.word}</span>
-                            <span className="text-sm">
-                              {answer.level === '修練' && '🚀'}
-                              {answer.level === '上級' && '🔬'}
-                              {answer.level === '標準' && '🖋️'}
-                              {answer.level === '基礎' && '📘'}
+                            <div className="flex-1 min-w-0">
+                              <div>{answer.word}</div>
+                              {answer.pos && (
+                                <div className={`text-xs truncate ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
+                                  {answer.pos.charAt(0)}）{answer.meaning}
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-sm flex-shrink-0">
+                              {(answer.levels || [answer.level]).map(l =>
+                                l === '修練' ? '🚀' : l === '上級' ? '🔬' : l === '標準' ? '🖋️' : l === '基礎' ? '📘' : ''
+                              ).join(' ')}
                             </span>
                           </button>
                         );
@@ -824,6 +1194,8 @@ export default function MondaiDetail() {
                     onClick={() => {
                       setKeywordMode('select-level');
                       setSelectedLevels([]);
+                      setCheckPosFilters(['動詞', '名詞', '形容詞副詞', 'その他']);
+                      setHideKeywordOnly(true);
                       setKeywordAnswers([]);
                     }}
                     className="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors font-medium"
@@ -925,12 +1297,26 @@ export default function MondaiDetail() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900">{selectedWord.単語}</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {selectedWord.レベル === '修練' && '🚀 修練'}
-                    {selectedWord.レベル === '上級' && '🔬 上級'}
-                    {selectedWord.レベル === '標準' && '🖋️ 標準'}
-                    {selectedWord.レベル === '基礎' && '📘 基礎'}
-                  </p>
+                  {(() => {
+                    const posGroups = getMeaningsByPartOfSpeech(selectedWord.単語);
+                    if (posGroups.size === 0) return null;
+                    return (
+                      <div className="mt-2 space-y-1">
+                        {[...posGroups.entries()].map(([pos, meanings], i) => (
+                          <div key={i} className="text-sm text-gray-700">
+                            <span className="text-gray-400 mr-1">{meanings[0]?.レベル}</span>
+                            <span className="text-gray-500">{pos}</span>{' '}
+                            {meanings.map((m, j) => (
+                              <span key={j}>
+                                {j > 0 && ', '}
+                                <span className={m.isKeyword ? 'font-bold text-pink-400' : ''}>{m.意味}</span>
+                              </span>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <button
                   onClick={() => setShowWordModal(false)}
@@ -940,7 +1326,7 @@ export default function MondaiDetail() {
                 </button>
               </div>
             </div>
-            
+
             <div className="p-6 overflow-y-auto flex-1">
               <h4 className="text-sm font-semibold text-gray-700 mb-3">各単語帳での掲載状況</h4>
               <div className="space-y-2">

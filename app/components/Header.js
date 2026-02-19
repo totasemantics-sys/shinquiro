@@ -58,7 +58,7 @@ export default function Header({ pageTitle, pageDescription }) {
                     link.comingSoon
                       ? 'text-gray-400 cursor-not-allowed'
                       : isActive(link.href)
-                        ? 'bg-emerald-500 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
                   }`}
                   onClick={(e) => link.comingSoon && e.preventDefault()}
@@ -120,7 +120,7 @@ export default function Header({ pageTitle, pageDescription }) {
                     link.comingSoon
                       ? 'text-gray-400 cursor-not-allowed'
                       : isActive(link.href)
-                        ? 'bg-emerald-500 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'text-gray-700 hover:bg-emerald-50'
                   }`}
                 >

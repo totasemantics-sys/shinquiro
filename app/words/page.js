@@ -45,6 +45,8 @@ export default function WordSearch() {
     学部: []
   });
   const [openFilter, setOpenFilter] = useState(null);
+  const [meaningFilters, setMeaningFilters] = useState([]); // 選択中の意味フィルタ
+  const [availableMeanings, setAvailableMeanings] = useState([]); // その単語のkeywords.csv由来の意味一覧
 
   // 単語マスター用のstate
   const [wordMasterData, setWordMasterData] = useState([]);
@@ -201,7 +203,7 @@ export default function WordSearch() {
         fetchData();
         }, []);
 
-  // 検索した単語が出題された大問を取得
+  // 検索した単語が出現した大問を取得
   const findAppearedMondai = (word) => {
     if (!keywordData || keywordData.length === 0 || !mondaiData || mondaiData.length === 0) {
       return [];
@@ -255,10 +257,16 @@ export default function WordSearch() {
     const wordInfo = getWordInfoGrouped(wordMasterData, word);
     setSearchedWordInfo(wordInfo);
     
-    // 出題された大問を検索
+    // 出現した大問を検索
     const appeared = findAppearedMondai(word);
     setAppearedMondai(appeared);
-    
+
+    // 意味フィルタを初期化（keywords.csvに存在する意味のみ）
+    const searchTerm = word.toLowerCase().trim();
+    const meanings = [...new Set(keywordData.filter(k => k.単語?.toLowerCase() === searchTerm && k.意味).map(k => k.意味))];
+    setAvailableMeanings(meanings);
+    setMeaningFilters(meanings); // デフォルトは全選択
+
     // フィルターをリセット
     setMondaiFilters({
       大学名: [],
@@ -267,7 +275,7 @@ export default function WordSearch() {
       学部: []
     });
     setMondaiSortConfig({ key: '年度', direction: 'desc' });
-    
+
     // 検索履歴に追加（重複を避け、最新10件のみ保持）
     setSearchHistory(prev => {
       const newHistory = [word, ...prev.filter(w => w !== word)].slice(0, 10);
@@ -306,10 +314,16 @@ export default function WordSearch() {
     const wordInfo = getWordInfoGrouped(wordMasterData, historyWord);
     setSearchedWordInfo(wordInfo);
     
-    // 出題された大問を検索
+    // 出現した大問を検索
     const appeared = findAppearedMondai(historyWord);
     setAppearedMondai(appeared);
-    
+
+    // 意味フィルタを初期化（keywords.csvに存在する意味のみ）
+    const searchTerm = historyWord.toLowerCase().trim();
+    const meanings = [...new Set(keywordData.filter(k => k.単語?.toLowerCase() === searchTerm && k.意味).map(k => k.意味))];
+    setAvailableMeanings(meanings);
+    setMeaningFilters(meanings);
+
     // フィルターをリセット
     setMondaiFilters({
       大学名: [],
@@ -445,7 +459,18 @@ export default function WordSearch() {
   // 出題大問のフィルターを適用
   const getFilteredMondai = () => {
     let filtered = [...appearedMondai];
-    
+
+    // 意味フィルター適用
+    if (searchResult?.word && meaningFilters.length < availableMeanings.length) {
+      const searchTerm = searchResult.word.toLowerCase().trim();
+      const matchedMondaiIds = new Set(
+        keywordData
+          .filter(k => k.単語?.toLowerCase() === searchTerm && meaningFilters.includes(k.意味))
+          .map(k => k.大問ID)
+      );
+      filtered = filtered.filter(m => matchedMondaiIds.has(m.大問ID));
+    }
+
     // フィルター適用
     Object.keys(mondaiFilters).forEach(key => {
       if (mondaiFilters[key].length > 0) {
@@ -651,7 +676,7 @@ export default function WordSearch() {
   const handleWordDetailClick = (wordData) => {
     setSelectedWordDetail(wordData);
     
-    // その単語が出題された大問の詳細を取得
+    // その単語が出現した大問の詳細を取得
     const mondaiDetails = wordData.大問IDs.map(id => {
       return mondaiData.find(m => m.大問ID === id);
     }).filter(Boolean).sort((a, b) => {
@@ -778,7 +803,7 @@ export default function WordSearch() {
                     <button
                       key={book}
                       onClick={() => toggleBook(book)}
-                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-emerald-500 text-white shadow-sm hover:bg-emerald-600"
+                      className="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
                     >
                       {book}
                     </button>
@@ -825,24 +850,16 @@ export default function WordSearch() {
                     
                     {/* 品詞・意味情報 */}
                     {searchedWordInfo.length > 0 && (
-                      <div className="mt-3 space-y-1">
+                      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 items-center">
                         {searchedWordInfo.map((info, idx) => (
-                          <div key={idx} className="flex items-center gap-2 flex-wrap">
-                            <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                              info.品詞 === '動詞' ? 'bg-blue-100 text-blue-700' :
-                              info.品詞 === '名詞' ? 'bg-green-100 text-green-700' :
-                              info.品詞 === '形容詞' ? 'bg-orange-100 text-orange-700' :
-                              info.品詞 === '副詞' ? 'bg-purple-100 text-purple-700' :
-                              info.品詞 === '前置詞' ? 'bg-pink-100 text-pink-700' :
-                              info.品詞 === '接続詞' ? 'bg-cyan-100 text-cyan-700' :
-                              'bg-gray-100 text-gray-700'
-                            }`}>
+                          <span key={idx} className="inline-flex items-center gap-1 whitespace-nowrap">
+                            <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700">
                               {info.品詞}
                             </span>
                             {info.意味 && (
-                              <span className="text-gray-700">{info.意味}</span>
+                              <span className="text-gray-700 font-bold">{info.意味}</span>
                             )}
-                          </div>
+                          </span>
                         ))}
                       </div>
                     )}
@@ -1059,7 +1076,7 @@ export default function WordSearch() {
                         key={idx}
                         className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                             historyWord === searchResult.word
-                            ? 'bg-emerald-500 text-white'
+                            ? 'bg-emerald-600 text-white'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                         >
@@ -1084,14 +1101,52 @@ export default function WordSearch() {
                 </div>
                 )}
 
-                {/* 出題された大問 */}
+                {/* 出現した大問 */}
                 {appearedMondai.length > 0 && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
-                      <Search className="text-emerald-600" size={20} />
-                      出題された大問 ({getFilteredMondai().length}件)
-                    </h3>
-                    
+                    <div className="flex items-baseline gap-3 mb-4 flex-wrap">
+                      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                        <Search className="text-emerald-600" size={20} />
+                        出現した大問 ({getFilteredMondai().length}件)
+                      </h3>
+                      <span className="text-xs text-gray-400">該当する大問がない場合、または多すぎる場合は表示されません</span>
+                    </div>
+
+                    {/* 意味フィルタ */}
+                    {availableMeanings.length > 0 && (
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-2">
+                          {availableMeanings.map((meaning, idx) => {
+                            const isSelected = meaningFilters.includes(meaning);
+                            return (
+                              <button
+                                key={idx}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    if (meaningFilters.length > 1) {
+                                      setMeaningFilters(meaningFilters.filter(m => m !== meaning));
+                                    }
+                                  } else {
+                                    setMeaningFilters([...meaningFilters, meaning]);
+                                  }
+                                }}
+                                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                                  isSelected
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                }`}
+                              >
+                                {meaning}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {getFilteredMondai().length === 0 ? (
+                      <p className="text-sm text-gray-500 py-4 text-center">該当する大問が多すぎるか、または存在しません。</p>
+                    ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50">
@@ -1232,11 +1287,6 @@ export default function WordSearch() {
                         </tbody>
                       </table>
                     </div>
-                    
-                    {getFilteredMondai().length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        フィルター条件に一致する大問がありません
-                      </div>
                     )}
                   </div>
                 )}
@@ -1281,7 +1331,7 @@ export default function WordSearch() {
                       onClick={() => setCompareRowCount(count)}
                       className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                         compareRowCount === count
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -1493,7 +1543,7 @@ export default function WordSearch() {
                       onClick={() => toggleUniSearchFilter('universities', uni)}
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                         uniSearchFilters.universities.includes(uni)
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -1518,7 +1568,7 @@ export default function WordSearch() {
                       onClick={() => toggleUniSearchFilter('faculties', fac)}
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                         uniSearchFilters.faculties.includes(fac)
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -1538,7 +1588,7 @@ export default function WordSearch() {
                       onClick={() => toggleUniSearchFilter('partsOfSpeech', pos)}
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                         uniSearchFilters.partsOfSpeech.includes(pos)
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -1558,7 +1608,7 @@ export default function WordSearch() {
                       onClick={() => toggleUniSearchFilter('levels', level)}
                       className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                         uniSearchFilters.levels.includes(level)
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -1617,7 +1667,7 @@ export default function WordSearch() {
                                 onClick={toggleAllCurrentPage}
                                 className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
                                   getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語))
-                                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                                    ? 'bg-emerald-600 border-emerald-500 text-white'
                                     : 'border-gray-300 hover:border-emerald-400'
                                 }`}
                               >
@@ -1639,7 +1689,7 @@ export default function WordSearch() {
                                 onClick={toggleAllCurrentPage}
                                 className={`w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all ${
                                   getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語))
-                                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                                    ? 'bg-emerald-600 border-emerald-500 text-white'
                                     : 'border-gray-300 hover:border-emerald-400'
                                 }`}
                               >
@@ -1713,7 +1763,7 @@ export default function WordSearch() {
                                     }}
                                     className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
                                       isSelected
-                                        ? 'bg-emerald-500 border-emerald-500 text-white'
+                                        ? 'bg-emerald-600 border-emerald-500 text-white'
                                         : 'border-gray-300 hover:border-emerald-400'
                                     }`}
                                   >
@@ -1783,7 +1833,7 @@ export default function WordSearch() {
                                     }}
                                     className={`w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all ${
                                       isSelected
-                                        ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
+                                        ? 'bg-emerald-600 border-emerald-500 text-white shadow-sm'
                                         : 'border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
                                     }`}
                                   >
@@ -1867,7 +1917,7 @@ export default function WordSearch() {
                   <p>1. 年度、大学名、学部などの条件を指定します</p>
                   <p>2. 「検索」ボタンをクリックします</p>
                   <p>3. 指定した条件で出題された単語が、出題回数の多い順に表示されます</p>
-                  <p>4. 単語をクリックすると、その単語が出題された大問の一覧が表示されます</p>
+                  <p>4. 単語をクリックすると、その単語が出現した大問の一覧が表示されます</p>
                 </div>
               </div>
             )}
@@ -1915,7 +1965,7 @@ export default function WordSearch() {
             </div>
             
             <div className="p-6 overflow-y-auto flex-1">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">出題された大問</h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">出現した大問</h4>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50">
