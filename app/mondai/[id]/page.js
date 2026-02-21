@@ -313,7 +313,7 @@ export default function MondaiDetail() {
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* パンくずリスト */}
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-          <button onClick={() => router.push('/')} className="hover:text-emerald-600 transition-colors flex items-center gap-1">
+          <button onClick={() => router.push('/search')} className="hover:text-emerald-600 transition-colors flex items-center gap-1">
             <Home size={16} />
             検索画面
           </button>

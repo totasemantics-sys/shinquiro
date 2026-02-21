@@ -489,7 +489,7 @@ export default function Home() {
                     }}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition ${
                       filters.examTypes.includes(type)
-                        ? 'bg-emerald-500 text-white shadow-sm'
+                        ? 'bg-emerald-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -579,7 +579,7 @@ export default function Home() {
                 <div className="relative" style={{ height: '60px' }}>
                   <div className="absolute w-full h-2 bg-gray-200 rounded-lg pointer-events-none" style={{ top: '29px' }} />
                   <div 
-                    className="absolute h-2 bg-emerald-500 rounded-lg pointer-events-none"
+                    className="absolute h-2 bg-emerald-600 rounded-lg pointer-events-none"
                     style={{
                       top: '29px',
                       left: `${(filters.wordCountRange[0] / 1500) * 100}%`,
@@ -663,7 +663,7 @@ export default function Home() {
                       }}
                       className={`px-4 py-2 rounded-md font-medium transition ${
                         filters.vocabLevels.includes(level)
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -683,7 +683,7 @@ export default function Home() {
                     onClick={() => setFilters({...filters, genre: filters.genre === genre ? '' : genre})}
                     className={`px-4 py-2 rounded-lg text-sm transition ${
                       filters.genre === genre
-                        ? 'bg-emerald-500 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -710,7 +710,7 @@ export default function Home() {
                             onClick={() => setFilters({...filters, hashtagMatchMode: 'any'})}
                             className={`px-3 py-1 text-xs font-medium transition-colors rounded-l-lg ${
                               filters.hashtagMatchMode === 'any'
-                                ? 'bg-emerald-500 text-white'
+                                ? 'bg-emerald-600 text-white'
                                 : 'bg-white text-gray-700 hover:bg-gray-50'
                             }`}
                           >
@@ -720,7 +720,7 @@ export default function Home() {
                             onClick={() => setFilters({...filters, hashtagMatchMode: 'all'})}
                             className={`px-3 py-1 text-xs font-medium transition-colors border-l border-gray-300 rounded-r-lg ${
                               filters.hashtagMatchMode === 'all'
-                                ? 'bg-emerald-500 text-white'
+                                ? 'bg-emerald-600 text-white'
                                 : 'bg-white text-gray-700 hover:bg-gray-50'
                             }`}
                           >
@@ -734,7 +734,7 @@ export default function Home() {
                         <button
                           key={tag}
                           onClick={() => setFilters({...filters, hashtags: filters.hashtags.filter(t => t !== tag)})}
-                          className="px-3 py-1 bg-emerald-500 text-white rounded-full text-xs flex items-center gap-1 hover:bg-emerald-600"
+                          className="px-3 py-1 bg-emerald-600 text-white rounded-full text-xs flex items-center gap-1 hover:bg-emerald-700"
                         >
                           #{tag}
                           <X size={14} />
@@ -758,7 +758,7 @@ export default function Home() {
                     }}
                     className={`px-3 py-1 rounded-full text-xs transition ${
                       filters.hashtags.includes(tag)
-                        ? 'bg-emerald-500 text-white'
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                     }`}
                   >
@@ -810,7 +810,7 @@ export default function Home() {
                       onClick={() => setFilters({...filters, bunshoJapanese: 'required'})}
                       className={`px-4 py-2 text-sm font-medium transition-colors rounded-l-lg ${
                         filters.bunshoJapanese === 'required'
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-white text-gray-700 hover:bg-gray-50'
                       }`}
                     >
@@ -847,7 +847,7 @@ export default function Home() {
                       onClick={() => setFilters({...filters, bunshoEnglish: 'required'})}
                       className={`px-4 py-2 text-sm font-medium transition-colors rounded-l-lg ${
                         filters.bunshoEnglish === 'required'
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-white text-gray-700 hover:bg-gray-50'
                       }`}
                     >
@@ -894,7 +894,7 @@ export default function Home() {
                     }}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       filters.questionCategories.includes(category)
-                        ? 'bg-emerald-500 text-white shadow-sm'
+                        ? 'bg-emerald-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -929,7 +929,7 @@ export default function Home() {
                     }}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       filters.questionFormats.includes(format)
-                        ? 'bg-emerald-500 text-white shadow-sm'
+                        ? 'bg-emerald-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -951,7 +951,7 @@ export default function Home() {
                       <button
                         key={kg}
                         onClick={() => setFilters({...filters, knowledgeGrammar: filters.knowledgeGrammar.filter(k => k !== kg)})}
-                        className="px-3 py-1 bg-emerald-500 text-white rounded-full text-xs flex items-center gap-1 hover:bg-emerald-600"
+                        className="px-3 py-1 bg-emerald-600 text-white rounded-full text-xs flex items-center gap-1 hover:bg-emerald-700"
                       >
                         {kg}
                         <X size={14} />
@@ -975,7 +975,7 @@ export default function Home() {
                     }}
                     className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       filters.knowledgeGrammar.includes(kg)
-                        ? 'bg-emerald-500 text-white shadow-sm'
+                        ? 'bg-emerald-600 text-white shadow-sm'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -1020,7 +1020,7 @@ export default function Home() {
         {/* ヒット数表示 */}
         <div className="fixed bottom-6 left-6 bg-white border-2 border-emerald-500 rounded-lg shadow-lg px-4 py-3 z-40">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse"></div>
             <span className="text-sm text-gray-700">
               ヒット数: <span className="font-bold text-emerald-600 text-lg">{filteredResults.length}</span> 件
             </span>
@@ -1129,7 +1129,7 @@ export default function Home() {
                                         onClick={() => handleHashtagClick(tag)}
                                         className={`px-2 py-1 text-xs rounded-full cursor-pointer transition-colors ${
                                           isSelected
-                                            ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                            ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                                             : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
                                         }`}
                                       >
@@ -1151,7 +1151,7 @@ export default function Home() {
                           href={`/mondai/${m.識別名}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
+                          className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 text-sm font-medium whitespace-nowrap"
                         >
                           大問詳細を見る
                         </Link>
@@ -1222,7 +1222,7 @@ export default function Home() {
                                       onClick={() => handleQuestionFormatClick(s.設問形式)}
                                       className={`px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
                                         filters.questionFormats.includes(s.設問形式)
-                                          ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                          ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                                           : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
                                       }`}
                                     >
@@ -1269,7 +1269,7 @@ export default function Home() {
                                                     onClick={() => handleKnowledgeClick(kg)}
                                                     className={`px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
                                                       isSelected
-                                                        ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                                                        ? 'bg-emerald-600 text-white hover:bg-emerald-700'
                                                         : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
                                                     }`}
                                                   >
@@ -1305,7 +1305,7 @@ export default function Home() {
                             href={`/mondai/${m.識別名}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium text-center"
+                            className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-600 hover:text-white text-sm font-medium text-center"
                           >
                             この大問の詳細を見る
                           </Link>
@@ -1314,7 +1314,7 @@ export default function Home() {
                             href={`/university/${getUniversityCodeFromId(m.識別名, universities)}?year=${m.年度}&gakubu=${encodeURIComponent(m.学部)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium text-center"
+                            className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-600 hover:text-white text-sm font-medium text-center"
                           >
                             {m.大学名}{m.学部}{m.年度}年度の一覧
                           </Link>
@@ -1323,7 +1323,7 @@ export default function Home() {
                             href={`/university/${getUniversityCodeFromId(m.識別名, universities)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-500 hover:text-white text-sm font-medium text-center"
+                            className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-emerald-600 hover:text-white text-sm font-medium text-center"
                           >
                             {m.大学名}の過去問一覧
                           </Link>
@@ -1383,7 +1383,7 @@ export default function Home() {
                       <button
                         key={tag}
                         onClick={() => toggleHashtagInModal(tag)}
-                        className="px-3 py-1 bg-emerald-500 text-white rounded-full text-sm flex items-center gap-1 hover:bg-emerald-600"
+                        className="px-3 py-1 bg-emerald-600 text-white rounded-full text-sm flex items-center gap-1 hover:bg-emerald-700"
                       >
                         #{tag}
                         <X size={14} />
@@ -1418,7 +1418,7 @@ export default function Home() {
                       onClick={() => toggleHashtagInModal(tag)}
                       className={`px-3 py-1 rounded-full text-sm transition ${
                         tempSelectedHashtags.includes(tag)
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                       }`}
                     >
@@ -1467,7 +1467,7 @@ export default function Home() {
                       <button
                         key={kg}
                         onClick={() => toggleKnowledgeInModal(kg)}
-                        className="px-3 py-1 bg-emerald-500 text-white rounded-full text-sm flex items-center gap-1 hover:bg-emerald-600"
+                        className="px-3 py-1 bg-emerald-600 text-white rounded-full text-sm flex items-center gap-1 hover:bg-emerald-700"
                       >
                         {kg}
                         <X size={14} />
@@ -1502,7 +1502,7 @@ export default function Home() {
                       onClick={() => toggleKnowledgeInModal(kg)}
                       className={`px-3 py-1 rounded-md text-sm font-medium transition ${
                         tempSelectedKnowledge.includes(kg)
-                          ? 'bg-emerald-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
