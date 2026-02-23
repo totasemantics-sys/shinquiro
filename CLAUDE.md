@@ -32,6 +32,7 @@ lib/                          # データ読み込みユーティリティ
 ├── loadKeywordData.js        # keywords.csv
 ├── loadWordMasterData.js     # word_master.csv
 ├── loadTangochoMasterData.js # tangocho_master.csv
+├── parseIdiomNotation.js     # 熟語記法（<<>>）解析ユーティリティ
 ├── loadArticlesData.js       # articles.csv（クライアント用）
 └── loadArticlesDataServer.js # articles.csv（サーバー用、fs読み込み）
 
@@ -79,10 +80,11 @@ public/docs/                  # 説明ページ用Markdown
 - 大問詳細の重要単語は一覧モード/チェックモードの2モード
 - **重要単語のレベル振り分け**: 同じ単語が複数レベルにまたがる場合、一覧では各レベルに表示、チェックではユニーク化して1回のみ出題（`filterKeywordsByLevelsUnique`）
 - **品詞フィルタ**: 一覧/チェック両モードに4カテゴリ（動詞/名詞/形容詞副詞/その他）。`matchesPosFilter()`で判定
-- **「出題意味のみチェック」トグル**: ONでkeyword由来の意味のみ隠す、OFFで全意味を隠す
+- **「出題意味のみチェック」トグル**: デフォルトOFF。ONでkeyword由来の意味のみ隠す、OFFで全意味を隠す
 - **単語検索の意味フィルタ**: keywords.csvに存在する意味でフィルタリング。意味ごとに出現した大問を絞り込み
 - **word_master優先度**: `parseInt(優先度) || 999` は0がfalsyで999になるバグあり→修正済み
 - **今日の難単語**: トップページで日替わりの難単語を表示。keywords.csvから修練・上級レベルをユニーク抽出し、日付ハッシュで1つ選択。モーダルで品詞・意味、出現大問、単語帳掲載状況を表示
+- **熟語記法（<<>>記法）**: 意味列に`<<prevent A from doing>> Aにdoさせない`のように記述すると、`<<>>`内を熟語の表示形、それ以外を意味として分離表示。`parseIdiomNotation()`で解析。原形は検索・照合・URLで維持
 
 ## デザイン方針（色の統一）
 - 選択中ボタンの色: `bg-emerald-600`（ヘッダーナビ、単語帳選択、検索履歴、品詞フィルタ、意味フィルタ等すべて統一）
@@ -90,7 +92,7 @@ public/docs/                  # 説明ページ用Markdown
 - 「出題意味のみチェック」トグル: `bg-pink-300`
 
 ## 仕様書
-詳細な仕様は `docs/SHINQUIRO_SPECIFICATION_v3_4.md` を参照。
+詳細な仕様は `docs/SHINQUIRO_SPECIFICATION_v3_4_1.md` を参照。
 
 ## 今後の予定
 - 設問形式説明ページの作成

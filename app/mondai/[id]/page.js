@@ -10,6 +10,7 @@ import { loadWordData, getAvailableBooks } from '@/lib/loadWordData';
 import { loadWordMasterData } from '@/lib/loadWordMasterData';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
+import { parseIdiomNotation } from '@/lib/parseIdiomNotation';
 
 export default function MondaiDetail() {
   const params = useParams();
@@ -35,7 +36,7 @@ export default function MondaiDetail() {
   const [showListMeaning, setShowListMeaning] = useState(true);
   const [selectedPosFilters, setSelectedPosFilters] = useState(['動詞', '名詞', '形容詞副詞', 'その他']);
   const [checkPosFilters, setCheckPosFilters] = useState(['動詞', '名詞', '形容詞副詞', 'その他']);
-  const [hideKeywordOnly, setHideKeywordOnly] = useState(true);
+  const [hideKeywordOnly, setHideKeywordOnly] = useState(false);
   const [activeListLevel, setActiveListLevel] = useState(null);
 
   // word_master用のstate
@@ -501,31 +502,33 @@ export default function MondaiDetail() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <h2 className="text-xl font-bold text-gray-900">📚 重要単語</h2>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setKeywordMode('list')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      keywordMode === 'list'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    一覧
+                  </button>
+                  <button
+                    onClick={() => setKeywordMode('select-level')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      keywordMode === 'select-level' || keywordMode === 'check' || keywordMode === 'result'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    チェック
+                  </button>
+                </div>
                 {(keywordMode === 'select-level' || keywordMode === 'check' || keywordMode === 'result') && (
                   <span className="text-xs text-gray-400"><span className="bg-pink-100 px-1 rounded">　</span> この大問で出現した意味</span>
                 )}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setKeywordMode('list')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    keywordMode === 'list'
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  一覧
-                </button>
-                <button
-                  onClick={() => setKeywordMode('select-level')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    keywordMode === 'select-level' || keywordMode === 'check' || keywordMode === 'result'
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  チェック
-                </button>
               </div>
             </div>
 
@@ -695,27 +698,36 @@ export default function MondaiDetail() {
                                   : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                               }`}
                             >
-                              <div className="flex items-center gap-2">
-                                <span className="flex-shrink-0 w-4 h-4 border-2 rounded flex items-center justify-center" style={{
-                                  borderColor: isSelected ? 'white' : '#d1d5db',
-                                  backgroundColor: isSelected ? 'white' : 'transparent'
-                                }}>
-                                  {isSelected && <span className="text-emerald-600 text-xs font-bold">✓</span>}
-                                </span>
-                                <span className="text-sm font-medium truncate">{keyword.単語}</span>
-                              </div>
-                              <div className={`flex items-center gap-1 mt-1 ml-6 text-xs ${
-                                isSelected ? 'text-white' : 'text-gray-500'
-                              }`}>
-                                {keyword.品詞 && (
-                                  <span className="flex-shrink-0">{keyword.品詞.charAt(0)})</span>
-                                )}
-                                {showListMeaning && keyword.意味 && (
-                                  <span className={`truncate ${isSelected ? '' : 'text-gray-800'}`}>
-                                    {keyword.意味}
-                                  </span>
-                                )}
-                              </div>
+                              {(() => {
+                                const parsed = parseIdiomNotation(keyword.意味);
+                                return (
+                                  <>
+                                    <div className="flex items-center gap-2">
+                                      <span className="flex-shrink-0 w-4 h-4 border-2 rounded flex items-center justify-center" style={{
+                                        borderColor: isSelected ? 'white' : '#d1d5db',
+                                        backgroundColor: isSelected ? 'white' : 'transparent'
+                                      }}>
+                                        {isSelected && <span className="text-emerald-600 text-xs font-bold">✓</span>}
+                                      </span>
+                                      <span className="text-sm font-medium truncate">
+                                        {parsed.isIdiom ? parsed.displayWord : keyword.単語}
+                                      </span>
+                                    </div>
+                                    <div className={`flex items-center gap-1 mt-1 ml-6 text-xs ${
+                                      isSelected ? 'text-white' : 'text-gray-500'
+                                    }`}>
+                                      {keyword.品詞 && (
+                                        <span className="flex-shrink-0">{keyword.品詞.charAt(0)})</span>
+                                      )}
+                                      {showListMeaning && parsed.displayMeaning && (
+                                        <span className={`truncate ${isSelected ? '' : 'text-gray-800'}`}>
+                                          {parsed.displayMeaning}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </>
+                                );
+                              })()}
                             </button>
                           );
                         })}
@@ -843,7 +855,7 @@ export default function MondaiDetail() {
 
             {/* チェックモード（単語チェック中） */}
             {keywordMode === 'check' && shuffledKeywords.length > 0 && (
-              <div className="py-8">
+              <div className="py-8 min-h-[420px] flex flex-col justify-between">
                 {/* プログレスバー + カウンター */}
                 <div className="max-w-md mx-auto mb-8 flex items-center gap-3">
                   <div className="flex-1 bg-gray-200 rounded-full h-3">
@@ -857,67 +869,129 @@ export default function MondaiDetail() {
                   </div>
                 </div>
 
-                <div className="text-center text-5xl font-bold text-gray-900 mb-8">
-                  {shuffledKeywords[currentKeywordIndex].単語}
-                </div>
+                {(() => {
+                  // この単語のkeywordsから熟語形があるか判定
+                  const currentWord = shuffledKeywords[currentKeywordIndex].単語;
+                  const kwEntries = keywordData.filter(k => k.単語 === currentWord);
+                  const idiomEntry = kwEntries.find(k => k.意味 && parseIdiomNotation(k.意味).isIdiom);
+                  const currentIdiom = idiomEntry ? parseIdiomNotation(idiomEntry.意味) : null;
 
-                {/* 品詞+レベル（左）＋ 意味（右） */}
-                <div className="max-w-sm mx-auto mb-10">
-                  {(() => {
-                    const tags = getPartOfSpeechTags(shuffledKeywords[currentKeywordIndex].単語);
-                    const allMeanings = getMeaningsByPartOfSpeech(shuffledKeywords[currentKeywordIndex].単語);
+                  return (
+                    <>
+                      <div className="text-center mb-8">
+                        {currentIdiom ? (
+                          <>
+                            <div className="text-5xl font-bold text-gray-900">{currentIdiom.displayWord}</div>
+                            <div className="text-sm text-gray-400 mt-2">{currentWord}</div>
+                          </>
+                        ) : (
+                          <div className="text-5xl font-bold text-gray-900">{currentWord}</div>
+                        )}
+                      </div>
 
-                    return (
-                      <div className="space-y-2">
-                        {tags.map((tag, idx) => {
-                          const posMeanings = allMeanings.get(tag.品詞) || [];
-                          // 同じ品詞のタグが複数ある場合、意味は最初のタグにだけ表示
-                          const isFirstOfPos = tags.findIndex(t => t.品詞 === tag.品詞) === idx;
+                      {/* 品詞+レベル（左）＋ 意味（右） */}
+                      <div className="max-w-sm mx-auto mb-10">
+                        {(() => {
+                          // 熟語形ありの場合：熟語の意味のみ表示
+                          if (currentIdiom) {
+                            const idiomMeanings = kwEntries
+                              .filter(k => k.意味 && parseIdiomNotation(k.意味).isIdiom)
+                              .map(k => ({
+                                品詞: k.品詞,
+                                レベル: k.レベル,
+                                displayMeaning: parseIdiomNotation(k.意味).displayMeaning,
+                                isKeyword: true
+                              }));
+                            // 品詞でグルーピング
+                            const posGroups = new Map();
+                            idiomMeanings.forEach(m => {
+                              if (!posGroups.has(m.品詞)) posGroups.set(m.品詞, { レベル: m.レベル, meanings: [] });
+                              posGroups.get(m.品詞).meanings.push(m);
+                            });
+
+                            return (
+                              <div className="space-y-2">
+                                {[...posGroups.entries()].map(([pos, group], idx) => (
+                                  <div key={idx} className="flex items-start gap-4">
+                                    <span className="flex-shrink-0 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                                      {pos} <span className="text-xs text-gray-500">{group.レベル}</span>
+                                    </span>
+                                    <div className="flex-1 min-h-[32px] flex items-start">
+                                      <div className="space-y-1">
+                                        {group.meanings.map((m, mIdx) => {
+                                          if (showMeaning) {
+                                            return (
+                                              <div key={mIdx} className="text-lg px-2 rounded text-gray-900 font-bold bg-pink-100">
+                                                {m.displayMeaning}
+                                              </div>
+                                            );
+                                          }
+                                          return (
+                                            <div key={mIdx} className="bg-pink-100 rounded px-2 min-h-[28px] w-24" />
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          }
+
+                          // 熟語形なし：従来通り
+                          const tags = getPartOfSpeechTags(currentWord);
+                          const allMeanings = getMeaningsByPartOfSpeech(currentWord);
 
                           return (
-                            <div key={idx} className="flex items-start gap-4">
-                              <span className="flex-shrink-0 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                                {tag.品詞} <span className="text-xs text-gray-500">{tag.レベル}</span>
-                              </span>
-                              <div className="flex-1 min-h-[32px] flex items-start">
-                                {isFirstOfPos && posMeanings.length > 0 ? (
-                                  <div className="space-y-1">
-                                    {posMeanings.map((m, mIdx) => {
-                                      // showMeaning: すべて表示
-                                      if (showMeaning) {
-                                        return (
-                                          <div key={mIdx} className={`text-lg px-2 rounded ${m.isKeyword ? 'text-gray-900 font-bold bg-pink-100' : 'text-gray-400'}`}>
-                                            {m.意味}
-                                          </div>
-                                        );
-                                      }
-                                      // hideKeywordOnly ON: keyword意味はピンクブロック、非keyword意味は表示
-                                      if (hideKeywordOnly) {
-                                        return m.isKeyword ? (
-                                          <div key={mIdx} className="bg-pink-100 rounded px-2 min-h-[28px] w-24" />
-                                        ) : (
-                                          <div key={mIdx} className="text-lg px-2 rounded text-gray-400">
-                                            {m.意味}
-                                          </div>
-                                        );
-                                      }
-                                      // hideKeywordOnly OFF: すべて非表示
-                                      return null;
-                                    })}
-                                    {/* hideKeywordOnly OFF時、keyword意味があればピンクブロック1つ表示 */}
-                                    {!showMeaning && !hideKeywordOnly && posMeanings.some(m => m.isKeyword) && (
-                                      <div className="bg-pink-100 rounded px-2 min-h-[28px] w-24" />
-                                    )}
+                            <div className="space-y-2">
+                              {tags.map((tag, idx) => {
+                                const posMeanings = allMeanings.get(tag.品詞) || [];
+                                const isFirstOfPos = tags.findIndex(t => t.品詞 === tag.品詞) === idx;
+
+                                return (
+                                  <div key={idx} className="flex items-start gap-4">
+                                    <span className="flex-shrink-0 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                                      {tag.品詞} <span className="text-xs text-gray-500">{tag.レベル}</span>
+                                    </span>
+                                    <div className="flex-1 min-h-[32px] flex items-start">
+                                      {isFirstOfPos && posMeanings.length > 0 ? (
+                                        <div className="space-y-1">
+                                          {posMeanings.map((m, mIdx) => {
+                                            const parsedM = parseIdiomNotation(m.意味);
+                                            if (showMeaning) {
+                                              return (
+                                                <div key={mIdx} className={`text-lg px-2 rounded ${m.isKeyword ? 'text-gray-900 font-bold bg-pink-100' : 'text-gray-400'}`}>
+                                                  {parsedM.displayMeaning}
+                                                </div>
+                                              );
+                                            }
+                                            if (hideKeywordOnly) {
+                                              return m.isKeyword ? (
+                                                <div key={mIdx} className="bg-pink-100 rounded px-2 min-h-[28px] w-24" />
+                                              ) : (
+                                                <div key={mIdx} className="text-lg px-2 rounded text-gray-400">
+                                                  {parsedM.displayMeaning}
+                                                </div>
+                                              );
+                                            }
+                                            return null;
+                                          })}
+                                          {!showMeaning && !hideKeywordOnly && posMeanings.some(m => m.isKeyword) && (
+                                            <div className="bg-pink-100 rounded px-2 min-h-[28px] w-24" />
+                                          )}
+                                        </div>
+                                      ) : null}
+                                    </div>
                                   </div>
-                                ) : null}
-                              </div>
+                                );
+                              })}
                             </div>
                           );
-                        })}
+                        })()}
                       </div>
-                    );
-                  })()}
-                </div>
+                    </>
+                  );
+                })()}
 
                 {/* ボタンエリア（幅を統一するためrefで計測） */}
                 {!showMeaning ? (
@@ -1077,6 +1151,7 @@ export default function MondaiDetail() {
                     <div className="space-y-2">
                       {keywordAnswers.filter(a => !a.confident).map((answer, idx) => {
                         const isSelected = selectedKeywords.includes(answer.word);
+                        const parsedMeaning = parseIdiomNotation(answer.meaning);
                         return (
                           <button
                             key={idx}
@@ -1100,10 +1175,10 @@ export default function MondaiDetail() {
                               {isSelected && <span className="text-red-600 font-bold">✓</span>}
                             </span>
                             <div className="flex-1 min-w-0">
-                              <div>{answer.word}</div>
+                              <div>{parsedMeaning.isIdiom ? parsedMeaning.displayWord : answer.word}</div>
                               {answer.pos && (
                                 <div className={`text-xs truncate ${isSelected ? 'text-red-100' : 'text-gray-500'}`}>
-                                  {answer.pos.charAt(0)}）{answer.meaning}
+                                  {answer.pos.charAt(0)}）{parsedMeaning.displayMeaning}
                                 </div>
                               )}
                             </div>
@@ -1147,6 +1222,7 @@ export default function MondaiDetail() {
                     <div className="space-y-2">
                       {keywordAnswers.filter(a => a.confident).map((answer, idx) => {
                         const isSelected = selectedKeywords.includes(answer.word);
+                        const parsedMeaning = parseIdiomNotation(answer.meaning);
                         return (
                           <button
                             key={idx}
@@ -1170,10 +1246,10 @@ export default function MondaiDetail() {
                               {isSelected && <span className="text-emerald-600 font-bold">✓</span>}
                             </span>
                             <div className="flex-1 min-w-0">
-                              <div>{answer.word}</div>
+                              <div>{parsedMeaning.isIdiom ? parsedMeaning.displayWord : answer.word}</div>
                               {answer.pos && (
                                 <div className={`text-xs truncate ${isSelected ? 'text-emerald-100' : 'text-gray-500'}`}>
-                                  {answer.pos.charAt(0)}）{answer.meaning}
+                                  {answer.pos.charAt(0)}）{parsedMeaning.displayMeaning}
                                 </div>
                               )}
                             </div>
@@ -1195,7 +1271,7 @@ export default function MondaiDetail() {
                       setKeywordMode('select-level');
                       setSelectedLevels([]);
                       setCheckPosFilters(['動詞', '名詞', '形容詞副詞', 'その他']);
-                      setHideKeywordOnly(true);
+                      setHideKeywordOnly(false);
                       setKeywordAnswers([]);
                     }}
                     className="px-6 py-3 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors font-medium"
@@ -1211,8 +1287,8 @@ export default function MondaiDetail() {
         {/* 単語帳掲載状況 */}
         {keywordData.length > 0 && availableBooks.length > 0 && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">📖 単語帳掲載状況</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-3">📖 単語帳掲載状況</h2>
+            <div className="flex justify-center mb-4">
               <select
                 value={selectedBook}
                 onChange={(e) => setSelectedBook(e.target.value)}
@@ -1306,12 +1382,18 @@ export default function MondaiDetail() {
                           <div key={i} className="text-sm text-gray-700">
                             <span className="text-gray-400 mr-1">{meanings[0]?.レベル}</span>
                             <span className="text-gray-500">{pos}</span>{' '}
-                            {meanings.map((m, j) => (
-                              <span key={j}>
-                                {j > 0 && ', '}
-                                <span className={m.isKeyword ? 'font-bold text-pink-400' : ''}>{m.意味}</span>
-                              </span>
-                            ))}
+                            {meanings.map((m, j) => {
+                              const parsedM = parseIdiomNotation(m.意味);
+                              return (
+                                <span key={j}>
+                                  {j > 0 && ', '}
+                                  {parsedM.isIdiom && (
+                                    <span className="text-gray-500 italic mr-1">{parsedM.displayWord}:</span>
+                                  )}
+                                  <span className={m.isKeyword ? 'font-bold text-pink-400' : ''}>{parsedM.displayMeaning}</span>
+                                </span>
+                              );
+                            })}
                           </div>
                         ))}
                       </div>

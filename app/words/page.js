@@ -10,6 +10,7 @@ import { loadKeywordData } from '@/lib/loadKeywordData';
 import { loadAllData } from '@/lib/loadData';
 import { loadWordMasterData, getWordInfoGrouped } from '@/lib/loadWordMasterData';
 import { loadTangochoMasterData, getAmazonLinkByBookName } from '@/lib/loadTangochoMasterData';
+import { parseIdiomNotation } from '@/lib/parseIdiomNotation';
 
 export default function WordSearch() {
   const router = useRouter();
@@ -851,16 +852,22 @@ export default function WordSearch() {
                     {/* 品詞・意味情報 */}
                     {searchedWordInfo.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 items-center">
-                        {searchedWordInfo.map((info, idx) => (
-                          <span key={idx} className="inline-flex items-center gap-1 whitespace-nowrap">
-                            <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700">
-                              {info.品詞}
+                        {searchedWordInfo.map((info, idx) => {
+                          const parsedInfo = parseIdiomNotation(info.意味);
+                          return (
+                            <span key={idx} className="inline-flex items-center gap-1 whitespace-nowrap">
+                              <span className="px-2 py-0.5 text-xs font-medium rounded bg-gray-100 text-gray-700">
+                                {info.品詞}
+                              </span>
+                              {parsedInfo.isIdiom && (
+                                <span className="text-gray-500 italic">{parsedInfo.displayWord}</span>
+                              )}
+                              {parsedInfo.displayMeaning && (
+                                <span className="text-gray-700 font-bold">{parsedInfo.displayMeaning}</span>
+                              )}
                             </span>
-                            {info.意味 && (
-                              <span className="text-gray-700 font-bold">{info.意味}</span>
-                            )}
-                          </span>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                     
@@ -1136,7 +1143,10 @@ export default function WordSearch() {
                                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                                 }`}
                               >
-                                {meaning}
+                                {(() => {
+                                  const p = parseIdiomNotation(meaning);
+                                  return p.isIdiom ? `${p.displayWord}: ${p.displayMeaning}` : p.displayMeaning;
+                                })()}
                               </button>
                             );
                           })}

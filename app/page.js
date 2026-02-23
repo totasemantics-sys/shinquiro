@@ -10,6 +10,7 @@ import { loadWordMasterData, getWordInfoGrouped } from '@/lib/loadWordMasterData
 import { loadWordData, searchWord } from '@/lib/loadWordData';
 import { loadTangochoMasterData, getAmazonLinkByBookName } from '@/lib/loadTangochoMasterData';
 import { loadAllData } from '@/lib/loadData';
+import { parseIdiomNotation } from '@/lib/parseIdiomNotation';
 
 function getDailyWord(words) {
   const dateStr = new Date().toISOString().slice(0, 10);
@@ -247,12 +248,18 @@ export default function Home() {
                             )}
                           </div>
                           <div className="text-base text-gray-800">
-                            {meanings.map((m, j) => (
-                              <span key={j}>
-                                {j > 0 && <span className="text-gray-300 mx-1">/</span>}
-                                <span>{m.意味}</span>
-                              </span>
-                            ))}
+                            {meanings.map((m, j) => {
+                              const parsedM = parseIdiomNotation(m.意味);
+                              return (
+                                <span key={j}>
+                                  {j > 0 && <span className="text-gray-300 mx-1">/</span>}
+                                  {parsedM.isIdiom && (
+                                    <span className="text-gray-500 italic mr-1 text-sm">{parsedM.displayWord}:</span>
+                                  )}
+                                  <span>{parsedM.displayMeaning}</span>
+                                </span>
+                              );
+                            })}
                           </div>
                         </div>
                       ))}

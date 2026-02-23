@@ -222,9 +222,9 @@ accessible,accessible,形容詞,標準,1,利用しやすい
 access,accessing,動詞,基礎,1,アクセスする
 accession,accession,名詞,上級,1,就任
 accession,accessions,名詞,上級,1,就任
-accessory,accessories,名詞,上級,1,付属品
-accessory,accessory,名詞,上級,1,付属品
-accessory,accessory,形容詞,上級,1,付属の
+accessory,accessories,名詞,必須,-1,付属品
+accessory,accessory,名詞,必須,-1,付属品
+accessory,accessory,形容詞,必須,0,付属の
 accident,accident,名詞,基礎,1,事故
 accidental,accidental,形容詞,上級,1,偶然の
 accidentally,accidentally,副詞,上級,1,偶然に
@@ -245,13 +245,13 @@ acclimation,acclimation,名詞,修練,1,順応
 acclimation,acclimations,名詞,修練,1,順応
 accolade,accolade,名詞,上級,1,栄誉
 accolade,accolades,名詞,上級,1,栄誉
-accommodate,accommodate,動詞,標準,1,収容する
-accommodate,accommodated,動詞,標準,1,収容する
-accommodate,accommodates,動詞,標準,1,収容する
-accommodate,accommodating,動詞,標準,1,収容する
+accommodate,accommodate,動詞,上級,1,収容する
+accommodate,accommodated,動詞,上級,1,収容する
+accommodate,accommodates,動詞,上級,1,収容する
+accommodate,accommodating,動詞,上級,1,収容する
 accommodating,accommodating,形容詞,上級,1,協力的な
-accommodation,accommodation,名詞,上級,1,宿泊施設
-accommodation,accommodations,名詞,上級,1,宿泊施設
+accommodation,accommodation,名詞,上級,1,"宿泊施設, (学生)寮"
+accommodation,accommodations,名詞,上級,1,"宿泊施設, (学生)寮"
 accompany,accompanied,動詞,標準,1,同行する
 accompany,accompanies,動詞,標準,1,同行する
 accompaniment,accompaniment,名詞,上級,1,伴奏
@@ -527,8 +527,8 @@ administer,administer,動詞,上級,1,管理する
 administer,administered,動詞,上級,1,管理する
 administer,administering,動詞,上級,1,管理する
 administer,administers,動詞,上級,1,管理する
-administration,administration,名詞,基礎,1,管理
-administration,administrations,名詞,基礎,1,管理
+administration,administration,名詞,基礎,1,"管理, 運営(者)"
+administration,administrations,名詞,基礎,1,"管理, 運営(者)"
 administrative,administrative,形容詞,標準,1,管理の
 administrator,administrator,名詞,標準,1,管理者
 administrator,administrators,名詞,標準,1,管理者
@@ -988,10 +988,10 @@ alternate,alternates,名詞,上級,1,代理人
 alternate,alternating,動詞,上級,1,交互にする
 alternation,alternation,名詞,上級,1,交替
 alternation,alternations,名詞,上級,1,交替
-alternative,alternative,名詞,標準,1,代替案
+alternative,alternative,名詞,標準,2,代替案
 alternative,alternative,形容詞,標準,1,代替の
 alternatively,alternatively,副詞,上級,1,あるいは
-alternative,alternatives,名詞,標準,1,代替案
+alternative,alternatives,名詞,標準,2,代替案
 alter,alters,動詞,標準,1,変更する
 although,although,接続詞,必須,0,〜だけれども
 altitude,altitude,名詞,上級,1,高度
@@ -1239,10 +1239,10 @@ annoyed,annoyed,形容詞,上級,1,いらだった
 annoy,annoying,動詞,上級,1,いらだたせる
 annoying,annoying,形容詞,上級,1,うっとうしい
 annoy,annoys,動詞,上級,1,いらだたせる
-annual,annual,名詞,基礎,2,年鑑
-annual,annual,形容詞,基礎,1,年間の
+annual,annual,名詞,上級,2,年鑑
+annual,annual,形容詞,標準,1,年間の
 annually,annually,副詞,標準,1,毎年
-annual,annuals,名詞,基礎,2,年鑑
+annual,annuals,名詞,上級,2,年鑑
 annul,annul,動詞,修練,1,無効にする
 annul,annuled,動詞,修練,1,無効にする
 annul,annuling,動詞,修練,1,無効にする
@@ -2193,6 +2193,8 @@ baffle,baffling,動詞,上級,1,困惑させる
 baffling,baffling,形容詞,上級,1,困惑させる
 baggage,baggage,名詞,上級,1,手荷物
 baggage,baggages,名詞,上級,1,手荷物
+bagpipe,bagpipe,名詞,上級,1,バグパイプ
+bagpipe,bagpipes,名詞,上級,1,バグパイプ
 bail,bail,動詞,上級,1,保釈する
 bail,bail,名詞,上級,1,保釈金
 bail,bailed,動詞,上級,1,保釈する
@@ -2330,13 +2332,14 @@ barter,bartered,動詞,上級,1,物々交換する
 barter,bartering,動詞,上級,1,物々交換する
 barter,barters,動詞,上級,1,物々交換する
 barter,barters,名詞,上級,1,物々交換
-base,base,動詞,基礎,1,基づかせる
+base,base,動詞,基礎,2,基づかせる
 base,base,名詞,基礎,1,基盤
 base,base,形容詞,基礎,1,卑劣な
-base,based,動詞,基礎,1,基づかせる
+base,based,動詞,基礎,2,基づかせる
+based,based,形容詞,標準,1,<<based on X>>Xに基づいている
 basement,basement,名詞,標準,1,地下室
 basement,basements,名詞,標準,1,地下室
-base,bases,動詞,基礎,1,基づかせる
+base,bases,動詞,基礎,2,基づかせる
 base,bases,名詞,基礎,1,基盤
 bash,bash,動詞,上級,1,強打する
 bash,bash,名詞,上級,1,強打
@@ -2348,7 +2351,7 @@ bash,bashing,動詞,上級,1,強打する
 basic,basic,形容詞,基礎,1,基本的な
 basically,basically,副詞,基礎,1,基本的に
 basin,basin,名詞,標準,1,盆地
-base,basing,動詞,基礎,1,基づかせる
+base,basing,動詞,基礎,2,基づかせる
 basin,basins,名詞,標準,1,盆地
 basis,basis,名詞,基礎,1,基礎
 basis,basises,名詞,基礎,1,基礎
@@ -4007,15 +4010,15 @@ championship,championships,名詞,標準,1,選手権
 chance,chance,名詞,必須,0,"機会, 可能性"
 chance,chance,形容詞,基礎,1,偶然の
 chance,chances,名詞,必須,0,"機会, 可能性"
-change,change,動詞,必須,-1,変える
+change,change,動詞,必須,-1,"変える, 変わる"
 change,change,名詞,必須,0,変化
 changeable,changeable,形容詞,上級,1,変わりやすい
-change,changed,動詞,必須,-1,変える
+change,changed,動詞,必須,-1,"変える, 変わる"
 changer,changer,名詞,上級,1,両替機
 changer,changers,名詞,上級,1,両替機
-change,changes,動詞,必須,-1,変える
+change,changes,動詞,必須,-1,"変える, 変わる"
 change,changes,名詞,必須,0,変化
-change,changing,動詞,必須,-1,変える
+change,changing,動詞,必須,-1,"変える, 変わる"
 channel,channel,動詞,基礎,1,導く
 channel,channel,名詞,基礎,1,チャンネル
 channel,channeled,動詞,基礎,1,導く
@@ -4116,14 +4119,15 @@ cheating,cheating,名詞,標準,1,不正行為
 cheating,cheatings,名詞,標準,1,不正行為
 cheat,cheats,動詞,上級,1,不正をする
 cheat,cheats,名詞,上級,1,詐欺師
-check,check,動詞,基礎,1,確認する
-check,check,名詞,基礎,1,確認
-check,checked,動詞,基礎,1,確認する
-check,checking,動詞,基礎,1,確認する
+check,check,動詞,必須,-2,確認する
+check,check,名詞,必須,-1,確認
+check,check,形容詞,必須,0,チェック柄の
+check,checked,動詞,必須,-2,確認する
+check,checking,動詞,必須,-2,確認する
 checkout,checkout,名詞,上級,1,精算
 checkout,checkouts,名詞,上級,1,精算
-check,checks,動詞,基礎,1,確認する
-check,checks,名詞,基礎,1,確認
+check,checks,動詞,必須,-2,確認する
+check,checks,名詞,必須,-1,確認
 checkup,checkup,名詞,上級,1,健康診断
 checkup,checkups,名詞,上級,1,健康診断
 cheek,cheek,名詞,標準,1,頬
@@ -4189,14 +4193,14 @@ chimpanzee,chimpanzees,名詞,上級,1,チンパンジー
 chimp,chimps,名詞,上級,1,チンパンジー
 chin,chin,名詞,標準,1,あご
 chin,chins,名詞,標準,1,あご
-chip,chip,動詞,標準,1,欠く
+chip,chip,動詞,上級,2,欠く
 chip,chip,名詞,標準,1,チップ
-chip,chipped,動詞,標準,1,欠く
-chip,chipping,動詞,標準,1,欠く
-chip,chips,動詞,標準,1,欠く
+chip,chipped,動詞,上級,2,欠く
+chip,chipping,動詞,上級,2,欠く
+chip,chips,動詞,上級,2,欠く
 chip,chips,名詞,標準,1,チップ
-chips,chips,名詞,標準,1,ポテトチップス
-chips,chipses,名詞,標準,1,ポテトチップス
+chips,chips,名詞,必須,0,ポテトチップス
+chips,chipses,名詞,必須,0,ポテトチップス
 chisel,chisel,動詞,修練,1,彫る
 chisel,chisel,名詞,修練,1,のみ
 chisel,chiseled,動詞,修練,1,彫る
@@ -4814,15 +4818,15 @@ commend,commended,動詞,上級,1,称賛する
 commend,commending,動詞,上級,1,称賛する
 commend,commends,動詞,上級,1,称賛する
 commensurate,commensurate,形容詞,上級,1,釣り合った
-comment,comment,動詞,標準,1,コメントする
+comment,comment,動詞,標準,2,コメントする
 comment,comment,名詞,標準,1,コメント
 commentary,commentaries,名詞,標準,1,解説
 commentary,commentary,名詞,標準,1,解説
 commentator,commentator,名詞,上級,1,解説者
 commentator,commentators,名詞,上級,1,解説者
-comment,commented,動詞,標準,1,コメントする
-comment,commenting,動詞,標準,1,コメントする
-comment,comments,動詞,標準,1,コメントする
+comment,commented,動詞,標準,2,コメントする
+comment,commenting,動詞,標準,2,コメントする
+comment,comments,動詞,標準,2,コメントする
 comment,comments,名詞,標準,1,コメント
 commerce,commerce,名詞,標準,1,商業
 commerce,commerces,名詞,標準,1,商業
@@ -5117,14 +5121,14 @@ concept,concept,名詞,基礎,1,概念
 conception,conception,名詞,標準,1,概念
 conception,conceptions,名詞,標準,1,概念
 concept,concepts,名詞,基礎,1,概念
-concern,concern,動詞,基礎,1,関係する
-concern,concern,名詞,基礎,1,懸念
-concern,concerned,動詞,基礎,1,関係する
-concerned,concerned,形容詞,上級,1,心配している
-concern,concerning,動詞,基礎,1,関係する
+concern,concern,動詞,標準,2,関係する
+concern,concern,名詞,標準,1,懸念
+concern,concerned,動詞,標準,2,関係する
+concerned,concerned,形容詞,標準,1,心配している
+concern,concerning,動詞,標準,2,関係する
 concerning,concerning,前置詞,上級,1,〜に関して
-concern,concerns,動詞,基礎,1,関係する
-concern,concerns,名詞,基礎,1,懸念
+concern,concerns,動詞,標準,2,関係する
+concern,concerns,名詞,標準,1,懸念
 concerted,concerted,形容詞,上級,1,協力した
 concession,concession,名詞,上級,1,譲歩
 concession,concessions,名詞,上級,1,譲歩
@@ -5650,11 +5654,11 @@ contentment,contentment,名詞,上級,1,満足
 contentment,contentments,名詞,上級,1,満足
 content,contents,名詞,標準,1,内容
 contest,contest,動詞,標準,1,争う
-contest,contest,名詞,標準,1,コンテスト
+contest,contest,名詞,必須,0,コンテスト
 contest,contested,動詞,標準,1,争う
 contest,contesting,動詞,標準,1,争う
 contest,contests,動詞,標準,1,争う
-contest,contests,名詞,標準,1,コンテスト
+contest,contests,名詞,必須,0,コンテスト
 context,context,名詞,基礎,1,文脈
 context,contexts,名詞,基礎,1,文脈
 contextual,contextual,形容詞,上級,1,文脈の
@@ -6983,7 +6987,7 @@ deliberation,deliberations,名詞,上級,1,熟考
 delicacy,delicacies,名詞,上級,1,繊細さ
 delicacy,delicacy,名詞,上級,1,繊細さ
 delicate,delicate,形容詞,標準,1,繊細な
-delicious,delicious,形容詞,標準,1,おいしい
+delicious,delicious,形容詞,基礎,1,おいしい
 delight,delight,動詞,標準,1,喜ばせる
 delight,delight,名詞,標準,1,喜び
 delight,delighted,動詞,標準,1,喜ばせる
@@ -7269,10 +7273,10 @@ descend,descending,動詞,上級,1,降りる
 descend,descends,動詞,上級,1,降りる
 descent,descent,名詞,標準,1,下降
 descent,descents,名詞,標準,1,下降
-describe,describe,動詞,基礎,1,描写する
-describe,described,動詞,基礎,1,描写する
-describe,describes,動詞,基礎,1,描写する
-describe,describing,動詞,基礎,1,描写する
+describe,describe,動詞,基礎,1,"描写する, 説明する"
+describe,described,動詞,基礎,1,"描写する, 説明する"
+describe,describes,動詞,基礎,1,"描写する, 説明する"
+describe,describing,動詞,基礎,1,"描写する, 説明する"
 description,description,名詞,標準,1,描写
 description,descriptions,名詞,標準,1,描写
 descriptive,descriptive,形容詞,標準,1,記述的な
@@ -7665,11 +7669,13 @@ dim,dimmed,動詞,標準,1,薄暗くする
 dim,dimming,動詞,標準,1,薄暗くする
 dim,dims,動詞,標準,1,薄暗くする
 din,din,名詞,上級,1,騒音
-dine,dine,動詞,上級,1,食事する
-dine,dined,動詞,上級,1,食事する
-dine,dines,動詞,上級,1,食事する
-dine,dining,動詞,上級,1,食事する
+dine,dine,動詞,標準,1,食事する
+dine,dined,動詞,標準,1,食事する
+dine,dines,動詞,標準,1,食事する
+dine,dining,動詞,標準,1,食事する
 dining,dining,名詞,標準,1,食事
+dining hall,dining hall,名詞,基礎,1,(大学などの) 食堂
+dining hall,dining halls,名詞,基礎,1,(大学などの) 食堂
 dining,dinings,名詞,標準,1,食事
 dinosaur,dinosaur,名詞,上級,1,恐竜
 dinosaur,dinosaurs,名詞,上級,1,恐竜
@@ -8338,13 +8344,13 @@ double,doubled,動詞,上級,1,二倍にする
 double,doubles,動詞,上級,1,二倍にする
 double,doubling,動詞,上級,1,二倍にする
 doubly,doubly,副詞,上級,1,二重に
-doubt,doubt,動詞,標準,1,疑う
+doubt,doubt,動詞,標準,1,"疑う, 〜ではないと思う"
 doubt,doubt,名詞,標準,1,疑い
-doubt,doubted,動詞,標準,1,疑う
+doubt,doubted,動詞,標準,1,"疑う, 〜ではないと思う"
 doubtful,doubtful,形容詞,上級,1,疑わしい
 doubtfully,doubtfully,副詞,上級,1,疑わしげに
-doubt,doubting,動詞,標準,1,疑う
-doubt,doubts,動詞,標準,1,疑う
+doubt,doubting,動詞,標準,1,"疑う, 〜ではないと思う"
+doubt,doubts,動詞,標準,1,"疑う, 〜ではないと思う"
 doubt,doubts,名詞,標準,1,疑い
 douse,douse,動詞,上級,1,水をかける
 douse,doused,動詞,上級,1,水をかける
@@ -8507,6 +8513,12 @@ droop,droop,動詞,修練,1,垂れ下がる
 droop,drooped,動詞,修練,1,垂れ下がる
 droop,drooping,動詞,修練,1,垂れ下がる
 droop,droops,動詞,修練,1,垂れ下がる
+drop,drop,動詞,基礎,2,落ちる
+drop,drop,名詞,基礎,1,"低下, 落ちること"
+drop,dropped,動詞,基礎,2,落ちる
+drop,dropping,動詞,基礎,2,落ちる
+drop,drops,動詞,基礎,2,落ちる
+drop,drops,名詞,基礎,1,"低下, 落ちること"
 drought,drought,名詞,標準,1,干ばつ
 drought,droughts,名詞,標準,1,干ばつ
 drown,drown,動詞,上級,1,溺れる
@@ -9770,7 +9782,7 @@ excel,exceled,動詞,上級,1,秀でる
 excel,exceling,動詞,上級,1,秀でる
 excellence,excellence,名詞,標準,1,優秀さ
 excellence,excellences,名詞,標準,1,優秀さ
-excellent,excellent,形容詞,基礎,1,優秀な
+excellent,excellent,形容詞,基礎,1,"優秀な, 素晴らしい"
 excel,excels,動詞,上級,1,秀でる
 except,except,前置詞,基礎,1,〜を除いて
 exception,exception,名詞,標準,1,例外
@@ -10700,6 +10712,7 @@ first,first,副詞,必須,0,最初に
 firsthand,firsthand,形容詞,上級,1,直接の
 firsthand,firsthand,副詞,上級,1,直接に
 fiscal,fiscal,形容詞,標準,1,財政の
+fish and chips,fish and chips,名詞,必須,0,フィッシュ&チップス
 fisherman,fisherman,名詞,上級,1,漁師
 fisherman,fishermans,名詞,上級,1,漁師
 fissure,fissure,名詞,上級,1,亀裂
@@ -10958,12 +10971,11 @@ folk,folks,名詞,標準,1,人々
 folktale,folktale,名詞,修練,1,民話
 folktale,folktales,名詞,修練,1,民話
 folly,follies,名詞,上級,1,愚行
-follow,follow,動詞,基礎,1,従う
-follow,followed,動詞,基礎,1,従う
-follow,following,動詞,基礎,1,従う
-following,following,形容詞,基礎,1,次の
-following,following,前置詞,基礎,1,〜の後に
-follow,follows,動詞,基礎,1,従う
+follow,follow,動詞,基礎,2,"従う, 後に続く"
+follow,followed,動詞,基礎,2,"従う, 後に続く"
+follow,following,動詞,基礎,2,"従う, 後に続く"
+following,following,形容詞,基礎,1,次の(もの)
+follow,follows,動詞,基礎,2,"従う, 後に続く"
 folly,folly,名詞,上級,1,愚行
 foment,foment,動詞,上級,1,扇動する
 foment,fomented,動詞,上級,1,扇動する
@@ -12226,7 +12238,7 @@ harbor,harbored,動詞,標準,1,抱く
 harbor,harboring,動詞,標準,1,抱く
 harbor,harbors,動詞,標準,1,抱く
 harbor,harbors,名詞,標準,1,港
-hard,hard,形容詞,必須,0,硬い
+hard,hard,形容詞,必須,0,"硬い, 難しい, 一生懸命な"
 hard,hard,副詞,必須,-1,一生懸命に
 hardly,hardly,副詞,基礎,1,ほとんど〜ない
 hardscrabble,hardscrabble,形容詞,上級,1,困窮した
@@ -13152,6 +13164,7 @@ in a sense,in a sense,熟語,標準,1,ある意味で
 in contrast,in contrast,熟語,基礎,1,対照的に
 in favor of,in favor of,前置詞,基礎,1,〜に賛成で/〜に有利に
 in favour of,in favour of,前置詞,基礎,1,〜に賛成で/〜に有利に
+in general,in general,熟語,標準,1,"通常, 全般的には"
 in order to,in order to,熟語,基礎,1,〜するために
 in response to,in response to,前置詞,基礎,1,〜に応じて
 in terms of,in terms of,前置詞,標準,1,〜の観点から
@@ -14431,12 +14444,12 @@ jumble,jumbled,動詞,上級,1,ごちゃ混ぜにする
 jumble,jumbles,動詞,上級,1,ごちゃ混ぜにする
 jumble,jumbles,名詞,上級,1,ごちゃ混ぜ
 jumble,jumbling,動詞,上級,1,ごちゃ混ぜにする
-jump,jump,動詞,標準,1,跳ぶ
-jump,jump,名詞,標準,1,ジャンプ
-jump,jumped,動詞,標準,1,跳ぶ
-jump,jumping,動詞,標準,1,跳ぶ
-jump,jumps,動詞,標準,1,跳ぶ
-jump,jumps,名詞,標準,1,ジャンプ
+jump,jump,動詞,必須,-1,跳ぶ
+jump,jump,名詞,必須,0,ジャンプ
+jump,jumped,動詞,必須,-1,跳ぶ
+jump,jumping,動詞,必須,-1,跳ぶ
+jump,jumps,動詞,必須,-1,跳ぶ
+jump,jumps,名詞,必須,0,ジャンプ
 junction,junction,名詞,上級,1,接合点
 junction,junctions,名詞,上級,1,接合点
 juncture,juncture,名詞,上級,1,時点
@@ -14446,8 +14459,8 @@ junior,junior,形容詞,基礎,1,年下の
 junior,juniors,名詞,基礎,1,年下の人
 junk,junk,名詞,標準,1,がらくた
 junk,junks,名詞,標準,1,がらくた
-Jupiter,Jupiter,名詞,#N/A,1,木星
-Jupiter,Jupiters,名詞,#N/A,1,木星
+Jupiter,Jupiter,名詞,標準,1,木星
+Jupiter,Jupiters,名詞,標準,1,木星
 jury,juries,名詞,基礎,1,陪審
 jurisdiction,jurisdiction,名詞,標準,1,管轄
 jurisdiction,jurisdictions,名詞,標準,1,管轄
@@ -14677,16 +14690,15 @@ laser,laser,名詞,標準,1,レーザー
 laser,lasers,名詞,標準,1,レーザー
 lassitude,lassitude,名詞,上級,1,倦怠
 lassitude,lassitudes,名詞,上級,1,倦怠
-last,last,動詞,修練,1,続く
-last,last,形容詞,修練,1,最後の
-last,last,副詞,修練,1,最後に
-last,lasted,動詞,修練,1,続く
-last,lasting,動詞,修練,1,続く
+last,last,動詞,上級,2,続く
+last,last,形容詞,必須,-1,最後の
+last,last,副詞,必須,0,最後に
+last,lasted,動詞,上級,2,続く
+last,lasting,動詞,上級,2,続く
 lasting,lasting,形容詞,上級,1,永続する
-lasting,lasting,形容詞,標準,1,永続する
 lastingly,lastingly,副詞,修練,1,永続的に
 lastly,lastly,副詞,上級,1,最後に
-last,lasts,動詞,修練,1,続く
+last,lasts,動詞,上級,2,続く
 late,late,形容詞,必須,-1,遅い
 late,late,副詞,必須,0,遅く
 lately,lately,副詞,標準,1,最近
@@ -15262,7 +15274,7 @@ lot,lot,名詞,必須,0,"たくさんの量, ロット"
 lot,lots,名詞,必須,0,"たくさんの量, ロット"
 lottery,lotteries,名詞,標準,1,宝くじ
 lottery,lottery,名詞,標準,1,宝くじ
-loud,loud,形容詞,標準,1,大きい
+loud,loud,形容詞,標準,1,"(声などが)大きい, うるさい"
 loudly,loudly,副詞,標準,1,大声で
 lousy,lousy,形容詞,上級,1,ひどい
 love,love,動詞,必須,0,愛する
@@ -15578,8 +15590,8 @@ marrow,marrows,名詞,上級,1,骨髄
 marry,marry,動詞,標準,1,結婚する
 marry,marrying,動詞,標準,1,結婚する
 mar,mars,動詞,上級,1,損なう
-Mars,Mars,名詞,#N/A,1,火星
-Mars,Marses,名詞,#N/A,1,火星
+Mars,Mars,名詞,標準,1,火星
+Mars,Marses,名詞,標準,1,火星
 martial,martial,形容詞,上級,1,軍の
 marvel,marvel,動詞,上級,1,驚く
 marvel,marvel,名詞,上級,1,驚き
@@ -15616,12 +15628,12 @@ masterpiece,masterpiece,名詞,上級,1,傑作
 masterpiece,masterpieces,名詞,上級,1,傑作
 master,masters,動詞,基礎,1,習得する
 master,masters,名詞,基礎,1,達人
-match,match,動詞,標準,1,一致する
-match,match,名詞,標準,1,試合
-match,matched,動詞,標準,1,一致する
-match,matches,動詞,標準,1,一致する
-match,matches,名詞,標準,1,試合
-match,matching,動詞,標準,1,一致する
+match,match,動詞,必須,0,"一致する, 合う"
+match,match,名詞,必須,-1,試合
+match,matched,動詞,必須,0,"一致する, 合う"
+match,matches,動詞,必須,0,"一致する, 合う"
+match,matches,名詞,必須,-1,試合
+match,matching,動詞,必須,0,"一致する, 合う"
 mate,mate,動詞,標準,1,交尾する
 mate,mate,名詞,標準,1,仲間
 mate,mated,動詞,標準,1,交尾する
@@ -15767,8 +15779,8 @@ meekly,meekly,副詞,上級,1,おとなしく
 meet,meet,動詞,必須,-1,会う
 meet,meeted,動詞,必須,-1,会う
 meet,meeting,動詞,必須,-1,会う
-meeting,meeting,名詞,必須,0,会議
-meeting,meetings,名詞,必須,0,会議
+meeting,meeting,名詞,必須,0,"会議, 会うこと"
+meeting,meetings,名詞,必須,0,"会議, 会うこと"
 meet,meets,動詞,必須,-1,会う
 megabyte,megabyte,名詞,修練,1,メガバイト
 megabyte,megabytes,名詞,修練,1,メガバイト
@@ -15935,11 +15947,8 @@ microwave,microwaves,名詞,標準,1,電子レンジ
 midday,midday,名詞,上級,1,正午
 midday,middays,名詞,上級,1,正午
 middle,middle,名詞,必須,-1,真ん中
-middle,middle,名詞,基礎,1,真ん中
 middle,middle,形容詞,必須,0,中間の
-middle,middle,形容詞,基礎,1,中間の
 middle,middles,名詞,必須,-1,真ん中
-middle,middles,名詞,基礎,1,真ん中
 midnight,midnight,名詞,標準,1,真夜中
 midnight,midnights,名詞,標準,1,真夜中
 midst,midst,名詞,標準,1,最中
@@ -17050,8 +17059,6 @@ odious,odious,形容詞,上級,1,憎むべき
 odor,odor,名詞,標準,1,臭い
 odor,odors,名詞,標準,1,臭い
 of,of,前置詞,必須,0,〜の
-off,off,副詞,必須,0,離れて
-off,off,前置詞,必須,0,〜から離れて
 offend,offend,動詞,上級,1,怒らせる
 offend,offended,動詞,上級,1,怒らせる
 offender,offender,名詞,上級,1,犯罪者
@@ -17423,8 +17430,6 @@ outworn,outworn,形容詞,修練,1,使い古した
 oval,oval,名詞,上級,1,楕円
 oval,oval,形容詞,上級,1,楕円形の
 oval,ovals,名詞,上級,1,楕円
-over,over,副詞,必須,0,向こうに
-over,over,前置詞,必須,-1,〜の上に
 over the hump,over the hump,熟語,上級,1,危機を乗り越えて
 overall,overall,形容詞,標準,1,全体的な
 overall,overall,副詞,標準,1,全体的に
@@ -18587,12 +18592,12 @@ poignancy,poignancies,名詞,上級,1,痛切さ
 poignancy,poignancy,名詞,上級,1,痛切さ
 poignant,poignant,形容詞,上級,1,痛切な
 point,point,動詞,必須,0,"指す, 向ける"
-point,point,名詞,必須,-1,点
+point,point,名詞,必須,-1,"点, ポイント"
 point,pointed,動詞,必須,0,"指す, 向ける"
 point,pointing,動詞,必須,0,"指す, 向ける"
 pointless,pointless,形容詞,上級,1,無意味な
 point,points,動詞,必須,0,"指す, 向ける"
-point,points,名詞,必須,-1,点
+point,points,名詞,必須,-1,"点, ポイント"
 poised,poised,形容詞,標準,1,準備ができた
 poison,poison,動詞,標準,1,毒を盛る
 poison,poison,名詞,標準,1,毒
@@ -18734,14 +18739,11 @@ possibility,possibilities,名詞,基礎,1,可能性
 possibility,possibility,名詞,基礎,1,可能性
 possible,possible,形容詞,必須,0,可能な
 possibly,possibly,副詞,基礎,1,もしかすると
-post,post,動詞,基礎,1,投稿する
-post,post,動詞,上級,1,投稿する
-post,post,名詞,基礎,1,ポスト
-post,post,名詞,上級,1,ポスト
+post,post,動詞,基礎,2,"投稿する, 掲示する"
+post,post,名詞,基礎,1,"ポスト, 投稿"
 postcard,postcard,名詞,上級,1,はがき
 postcard,postcards,名詞,上級,1,はがき
-post,posted,動詞,基礎,1,投稿する
-post,posted,動詞,上級,1,投稿する
+post,posted,動詞,基礎,2,"投稿する, 掲示する"
 posterior,posterior,形容詞,上級,1,後ろの
 posterity,posterities,名詞,上級,1,後世
 posterity,posterity,名詞,上級,1,後世
@@ -18749,18 +18751,15 @@ postgraduate,postgraduate,名詞,上級,1,大学院生
 postgraduate,postgraduates,名詞,上級,1,大学院生
 posthumous,posthumous,形容詞,上級,1,死後の
 posthumously,posthumously,副詞,上級,1,死後に
-post,posting,動詞,基礎,1,投稿する
-post,posting,動詞,上級,1,投稿する
+post,posting,動詞,基礎,2,"投稿する, 掲示する"
 postpone,postpone,動詞,上級,1,延期する
 postpone,postponed,動詞,上級,1,延期する
 postponement,postponement,名詞,上級,1,延期
 postponement,postponements,名詞,上級,1,延期
 postpone,postpones,動詞,上級,1,延期する
 postpone,postponing,動詞,上級,1,延期する
-post,posts,動詞,基礎,1,投稿する
-post,posts,動詞,上級,1,投稿する
-post,posts,名詞,基礎,1,ポスト
-post,posts,名詞,上級,1,ポスト
+post,posts,動詞,基礎,2,"投稿する, 掲示する"
+post,posts,名詞,基礎,1,"ポスト, 投稿"
 postulate,postulate,動詞,修練,1,仮定する
 postulate,postulated,動詞,修練,1,仮定する
 postulate,postulates,動詞,修練,1,仮定する
@@ -20676,15 +20675,15 @@ reluctant,reluctant,形容詞,標準,1,不本意な
 reluctantly,reluctantly,副詞,上級,1,しぶしぶ
 rely,rely,動詞,標準,1,頼る
 rely,relying,動詞,標準,1,頼る
-remain,remain,動詞,基礎,1,残る
+remain,remain,動詞,基礎,1,"〜なままである, 残る"
 remainder,remainder,名詞,上級,1,残り
 remainder,remainders,名詞,上級,1,残り
-remain,remained,動詞,基礎,1,残る
-remain,remaining,動詞,基礎,1,残る
-remaining,remaining,形容詞,上級,1,残りの
-remain,remains,動詞,基礎,1,残る
-remains,remains,名詞,標準,1,遺跡
-remains,remainses,名詞,標準,1,遺跡
+remain,remained,動詞,基礎,1,"〜なままである, 残る"
+remain,remaining,動詞,基礎,1,"〜なままである, 残る"
+remaining,remaining,形容詞,標準,1,残りの
+remain,remains,動詞,基礎,1,"〜なままである, 残る"
+remains,remains,名詞,標準,2,遺跡
+remains,remainses,名詞,標準,2,遺跡
 remand,remand,動詞,修練,1,拘留する
 remand,remanded,動詞,修練,1,拘留する
 remand,remanding,動詞,修練,1,拘留する
@@ -21136,8 +21135,8 @@ restate,restate,動詞,上級,1,改めて述べる
 restate,restated,動詞,上級,1,改めて述べる
 restate,restates,動詞,上級,1,改めて述べる
 restate,restating,動詞,上級,1,改めて述べる
-restaurant,restaurant,名詞,基礎,1,レストラン
-restaurant,restaurants,名詞,基礎,1,レストラン
+restaurant,restaurant,名詞,必須,0,レストラン
+restaurant,restaurants,名詞,必須,0,レストラン
 rest,rested,動詞,必須,0,休む
 rest,resting,動詞,必須,0,休む
 restitution,restitution,名詞,上級,1,返還
@@ -21598,10 +21597,10 @@ rout,rout,名詞,上級,1,大敗
 route,route,名詞,基礎,1,経路
 rout,routed,動詞,上級,2,大敗させる
 route,routes,名詞,基礎,1,経路
-routine,routine,名詞,標準,1,日課
-routine,routine,形容詞,標準,1,日常の
+routine,routine,名詞,標準,1,"日課, 決まった行為"
+routine,routine,形容詞,標準,2,日常の
 routinely,routinely,副詞,標準,1,日常的に
-routine,routines,名詞,標準,1,日課
+routine,routines,名詞,標準,1,"日課, 決まった行為"
 rout,routing,動詞,上級,2,大敗させる
 rout,routs,動詞,上級,2,大敗させる
 rout,routs,名詞,上級,1,大敗
@@ -21724,6 +21723,8 @@ safari,safari,名詞,上級,1,サファリ
 safari,safaris,名詞,上級,1,サファリ
 safe,safe,形容詞,基礎,1,安全な
 safely,safely,副詞,標準,1,安全に
+safety,safeties,名詞,標準,1,安全
+safety,safety,名詞,標準,1,安全
 sage,sage,名詞,標準,1,賢者
 sage,sage,形容詞,標準,1,賢い
 sage,sages,名詞,標準,1,賢者
@@ -21974,6 +21975,7 @@ scornful,scornful,形容詞,上級,1,軽蔑的な
 scorn,scorning,動詞,上級,1,軽蔑する
 scorn,scorns,動詞,上級,1,軽蔑する
 scorn,scorns,名詞,上級,1,軽蔑
+Scottish,Scottish,形容詞,標準,1,スコットランドの
 scour,scour,動詞,上級,1,磨く
 scour,scoured,動詞,上級,1,磨く
 scourge,scourge,名詞,上級,1,災い
@@ -24315,11 +24317,11 @@ surveil,surveiling,動詞,修練,1,監視する
 surveillance,surveillance,名詞,標準,1,監視
 surveillance,surveillances,名詞,標準,1,監視
 surveil,surveils,動詞,修練,1,監視する
-survey,survey,動詞,基礎,1,調査する
+survey,survey,動詞,基礎,2,調査する
 survey,survey,名詞,基礎,1,調査
-survey,surveyed,動詞,基礎,1,調査する
-survey,surveying,動詞,基礎,1,調査する
-survey,surveys,動詞,基礎,1,調査する
+survey,surveyed,動詞,基礎,2,調査する
+survey,surveying,動詞,基礎,2,調査する
+survey,surveys,動詞,基礎,2,調査する
 survey,surveys,名詞,基礎,1,調査
 survival,survival,名詞,基礎,1,生存
 survival,survivals,名詞,基礎,1,生存
@@ -24572,6 +24574,8 @@ tangible,tangible,形容詞,上級,1,有形の
 tangle,tangle,名詞,上級,1,もつれ
 tangle,tangles,名詞,上級,1,もつれ
 tank,tank,名詞,標準,1,タンク
+tank top,tank top,名詞,基礎,1,タンクトップ
+tank top,tank tops,名詞,基礎,1,タンクトップ
 tank,tanks,名詞,標準,1,タンク
 tan,tans,名詞,上級,1,日焼け
 tantalize,tantalize,動詞,修練,1,じらす
@@ -24611,7 +24615,7 @@ tasteful,tasteful,形容詞,上級,1,趣味のよい
 taste,tastes,動詞,基礎,1,味わう
 taste,tastes,名詞,基礎,1,味
 taste,tasting,動詞,基礎,1,味わう
-tasty,tasty,形容詞,上級,1,おいしい
+tasty,tasty,形容詞,基礎,1,おいしい
 tatter,tatter,名詞,修練,1,ぼろ
 tatter,tatters,名詞,修練,1,ぼろ
 taunt,taunt,動詞,上級,1,あざける
@@ -24727,8 +24731,8 @@ tenancy,tenancies,名詞,修練,1,借用
 tenancy,tenancy,名詞,修練,1,借用
 tenant,tenant,名詞,上級,1,借主
 tenant,tenants,名詞,上級,1,借主
-tend,tend,動詞,基礎,1,〜する傾向がある
-tend,tended,動詞,基礎,1,〜する傾向がある
+tend,tend,動詞,基礎,1,<<tend to do>>doする傾向がある
+tend,tended,動詞,基礎,1,<<tend to do>>doする傾向がある
 tendency,tendencies,名詞,標準,1,傾向
 tendency,tendency,名詞,標準,1,傾向
 tender,tender,形容詞,上級,1,優しい
@@ -24737,8 +24741,8 @@ tenderloin,tenderloins,名詞,上級,1,ヒレ肉
 tenderly,tenderly,副詞,上級,1,優しく
 tenderness,tenderness,名詞,上級,1,優しさ
 tenderness,tendernesses,名詞,上級,1,優しさ
-tend,tending,動詞,基礎,1,〜する傾向がある
-tend,tends,動詞,基礎,1,〜する傾向がある
+tend,tending,動詞,基礎,1,<<tend to do>>doする傾向がある
+tend,tends,動詞,基礎,1,<<tend to do>>doする傾向がある
 tenet,tenet,名詞,上級,1,教義
 tenet,tenets,名詞,上級,1,教義
 tense,tense,名詞,標準,1,時制
@@ -24871,9 +24875,13 @@ thin,thin,形容詞,基礎,1,薄い
 thing,thing,名詞,必須,0,もの
 thing,things,名詞,必須,0,もの
 think,think,動詞,必須,0,考える
+think,think,動詞,標準,1,<<think X over>>Xをよく考える
 think,thinked,動詞,必須,0,考える
+think,thinked,動詞,標準,1,<<think X over>>Xをよく考える
 think,thinking,動詞,必須,0,考える
+think,thinking,動詞,標準,1,<<think X over>>Xをよく考える
 think,thinks,動詞,必須,0,考える
+think,thinks,動詞,標準,1,<<think X over>>Xをよく考える
 thinner,thinner,形容詞,上級,1,より薄い
 thirst,thirst,名詞,上級,1,渇き
 thirst,thirsts,名詞,上級,1,渇き
@@ -24888,6 +24896,7 @@ thoroughfare,thoroughfares,名詞,上級,1,大通り
 thoroughly,thoroughly,副詞,標準,1,徹底的に
 thoroughness,thoroughness,名詞,上級,1,徹底
 thoroughness,thoroughnesses,名詞,上級,1,徹底
+those who,those who,名詞,基礎,1,〜する人々
 though,though,副詞,基礎,1,しかし
 though,though,接続詞,基礎,1,〜だけれども
 thought,thought,名詞,必須,0,"考え, 思考"
@@ -26592,8 +26601,8 @@ weave,weaves,動詞,上級,1,織る
 weave,weaving,動詞,上級,1,織る
 web,web,名詞,基礎,1,ウェブ
 web,webs,名詞,基礎,1,ウェブ
-Website,Website,名詞,標準,1,ウェブサイト
-Website,Websites,名詞,標準,1,ウェブサイト
+Website,Website,名詞,必須,0,ウェブサイト
+Website,Websites,名詞,必須,0,ウェブサイト
 wed,wed,動詞,上級,1,結婚する
 wed,wedded,動詞,上級,1,結婚する
 wed,wedding,動詞,上級,1,結婚する
@@ -26819,33 +26828,33 @@ wool,wool,名詞,標準,1,羊毛
 wool,wools,名詞,標準,1,羊毛
 word,word,名詞,必須,0,言葉
 word,words,名詞,必須,0,言葉
-work,work,動詞,必須,0,働く
+work,work,動詞,必須,0,"働く, うまくいく"
 work,work,名詞,必須,-1,仕事
 workaholic,workaholic,名詞,上級,1,仕事中毒者
 workaholic,workaholics,名詞,上級,1,仕事中毒者
-work,worked,動詞,必須,0,働く
+work,worked,動詞,必須,0,"働く, うまくいく"
 workforce,workforce,名詞,標準,1,労働力
 workforce,workforces,名詞,標準,1,労働力
-work,working,動詞,必須,0,働く
+work,working,動詞,必須,0,"働く, うまくいく"
 workload,workload,名詞,上級,1,仕事量
 workload,workloads,名詞,上級,1,仕事量
 workout,workout,名詞,標準,1,トレーニング
 workout,workouts,名詞,標準,1,トレーニング
 workplace,workplace,名詞,標準,1,職場
 workplace,workplaces,名詞,標準,1,職場
-work,works,動詞,必須,0,働く
+work,works,動詞,必須,0,"働く, うまくいく"
 work,works,名詞,必須,-1,仕事
 workshop,workshop,名詞,標準,1,ワークショップ
 workshop,workshops,名詞,標準,1,ワークショップ
 worm,worm,名詞,上級,1,虫
 worm,worms,名詞,上級,1,虫
-worry,worried,動詞,基礎,1,心配する
-worried,worried,形容詞,標準,1,心配した
-worry,worries,動詞,基礎,1,心配する
-worry,worries,名詞,基礎,1,心配
-worry,worry,動詞,基礎,1,心配する
-worry,worry,名詞,基礎,1,心配
-worry,worrying,動詞,基礎,1,心配する
+worry,worried,動詞,必須,-1,心配する
+worried,worried,形容詞,必須,0,心配している
+worry,worries,動詞,必須,-1,心配する
+worry,worries,名詞,必須,0,心配
+worry,worry,動詞,必須,-1,心配する
+worry,worry,名詞,必須,0,心配
+worry,worrying,動詞,必須,-1,心配する
 worse,worse,形容詞,上級,1,より悪い
 worsen,worsen,動詞,上級,1,悪化する
 worsen,worsened,動詞,上級,1,悪化する
