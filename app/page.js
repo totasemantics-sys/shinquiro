@@ -89,12 +89,40 @@ export default function Home() {
   const getBookStatuses = (word) => {
     if (!word || !wordData.length) return [];
     const results = searchWord(wordData, word);
-    return results.map(r => ({
-      book: r.単語帳名称,
-      status: r.掲載区分 === '見出し語' ? 'main' : 'related',
-      number: r.単語帳内番号 || null,
-      page: r.ページ数 || null
-    }));
+    return results.map(r => {
+      let headword = null;
+      if (r.掲載区分 !== '見出し語' && r.単語帳内番号) {
+        const hw = wordData.find(
+          d => d.単語帳名称 === r.単語帳名称 && d.単語帳内番号 === r.単語帳内番号 && d.掲載区分 === '見出し語'
+        );
+        if (hw) headword = hw.単語;
+      }
+      return {
+        book: r.単語帳名称,
+        status: r.掲載区分 === '見出し語' ? 'main' : 'related',
+        number: r.単語帳内番号 || null,
+        page: r.ページ数 || null,
+        headword
+      };
+    });
+  };
+
+  // カード用: 出題情報（年度降順→大問ID昇順で先頭1件）
+  const getDailyWordSource = (word) => {
+    if (!word || !keywords.length || !mondaiData.length) return null;
+    const mondaiIds = [...new Set(keywords.filter(k => k.単語 === word).map(k => k.大問ID))];
+    const mondaiList = mondaiIds
+      .map(id => mondaiData.find(m => m.大問ID === id))
+      .filter(Boolean);
+    if (mondaiList.length === 0) return null;
+    mondaiList.sort((a, b) => {
+      const yearDiff = parseInt(b.年度) - parseInt(a.年度);
+      if (yearDiff !== 0) return yearDiff;
+      return a.大問ID.localeCompare(b.大問ID);
+    });
+    const top = mondaiList[0];
+    const label = `${top.年度} ${top.大学名} ${top.学部}`;
+    return mondaiList.length >= 2 ? `${label} など` : label;
   };
 
   // モーダル用: 出現した大問一覧
@@ -168,7 +196,7 @@ export default function Home() {
           {/* 今日の難単語 */}
           <div className="group">
             <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-8 h-full border-2 border-transparent hover:border-amber-500">
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-4 mb-3">
                 <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500 transition-colors">
                   <Sparkles className="w-7 h-7 text-amber-600 group-hover:text-white transition-colors" />
                 </div>
@@ -178,7 +206,13 @@ export default function Home() {
                 <div className="text-gray-400 mb-4 text-center">読み込み中...</div>
               ) : dailyWord ? (
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-800 mb-4">{dailyWord.単語}</p>
+                  <p className="text-2xl font-bold text-gray-800 mb-3">{dailyWord.単語}</p>
+                  {(() => {
+                    const source = getDailyWordSource(dailyWord.単語);
+                    return source ? (
+                      <p className="text-xs text-gray-300 mb-3">{source}</p>
+                    ) : null;
+                  })()}
                   <button
                     onClick={() => setShowDailyWordModal(true)}
                     className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium transition-colors text-sm"
@@ -284,7 +318,7 @@ export default function Home() {
                           onClick={() => setShowDailyWordModal(false)}
                         >
                           <div className="text-sm font-medium text-gray-900">
-                            {m.年度} {m.大学名} {m.学部}
+                            {m.年度} {m.大学名} {m.学部} {m.大問名}
                           </div>
                         </Link>
                       ))}
@@ -320,6 +354,7 @@ export default function Home() {
                                 {item.number && `No.${item.number}`}
                                 {item.number && item.page && ' / '}
                                 {item.page && `p.${item.page}`}
+                                {item.headword && ` (${item.headword})`}
                               </span>
                             )}
                           </div>

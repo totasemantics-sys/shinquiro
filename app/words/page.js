@@ -66,13 +66,16 @@ export default function WordSearch() {
     levels: []
   });
   const [uniSearchResults, setUniSearchResults] = useState([]);
-  const [uniSearchPage, setUniSearchPage] = useState(1);
+  const [uniSearchDisplayCount, setUniSearchDisplayCount] = useState(50);
   const [hasUniSearched, setHasUniSearched] = useState(false);
   const [showWordDetailModal, setShowWordDetailModal] = useState(false);
   const [selectedWordDetail, setSelectedWordDetail] = useState(null);
-  const [wordDetailMondai, setWordDetailMondai] = useState([]);
   const [hashtagsData, setHashtagsData] = useState([]);
   const [selectedUniWords, setSelectedUniWords] = useState([]);  // 一括比較用チェック
+  const [groupByMeaning, setGroupByMeaning] = useState(true); // トグル1: 同じ品詞・異なる意味をまとめる
+  const [groupByPos, setGroupByPos] = useState(true); // トグル2: 同じ綴り・異なる品詞もまとめる
+  const [selectedMeanings, setSelectedMeanings] = useState([]); // モーダル用: 選択中の意味キー
+  const [modalShowAll, setModalShowAll] = useState(false); // モーダル: 全検索結果表示トグル
   useEffect(() => {
     async function fetchData() {
       const data = await loadWordData();
@@ -569,9 +572,10 @@ export default function WordSearch() {
     
     const filteredMondaiIds = filteredMondai.map(m => m.大問ID);
     
-    // フィルター条件に合うキーワードを取得
-    let filteredKeywords = keywordData.filter(k => filteredMondaiIds.includes(k.大問ID));
-    
+    // フィルター条件に合うキーワードを取得（表示対象レベルのみ）
+    const allowedLevels = ['基礎', '標準', '上級', '修練'];
+    let filteredKeywords = keywordData.filter(k => filteredMondaiIds.includes(k.大問ID) && allowedLevels.includes(k.レベル));
+
     // 品詞フィルター
     if (uniSearchFilters.partsOfSpeech.length > 0) {
       filteredKeywords = filteredKeywords.filter(k => uniSearchFilters.partsOfSpeech.includes(k.品詞));
@@ -583,38 +587,105 @@ export default function WordSearch() {
     }
     
     // 単語ごとに出題回数をカウント
+    // グルーピングキー: 両方OFF=単語+品詞+意味 / トグル1のみON=単語+品詞 / 両方ON=単語のみ
     const wordCounts = {};
     filteredKeywords.forEach(k => {
       const word = k.単語?.toLowerCase();
       if (!word) return;
-      
-      if (!wordCounts[word]) {
-        wordCounts[word] = {
+
+      let key;
+      if (groupByPos) {
+        key = word; // 両方ON: 単語のみ
+      } else if (groupByMeaning) {
+        key = `${word}__${k.品詞 || ''}`; // トグル1のみON: 単語+品詞
+      } else {
+        key = `${word}__${k.品詞 || ''}__${k.意味 || ''}`; // 両方OFF: 単語+品詞+意味
+      }
+
+      if (!wordCounts[key]) {
+        wordCounts[key] = {
           単語: k.単語,
           品詞: k.品詞,
           レベル: k.レベル,
           意味: k.意味,
           出題回数: 0,
-          大問IDs: []
+          大問IDs: [],
+          // meanings: 品詞→意味の2階層構造
+          meaningsByPos: {},
+          // 品詞カウント（両方ON時の品詞+N表示用）
+          posCounts: {}
         };
       }
-      wordCounts[word].出題回数++;
-      if (!wordCounts[word].大問IDs.includes(k.大問ID)) {
-        wordCounts[word].大問IDs.push(k.大問ID);
+      wordCounts[key].出題回数++;
+      if (!wordCounts[key].大問IDs.includes(k.大問ID)) {
+        wordCounts[key].大問IDs.push(k.大問ID);
       }
-      // 意味が空の場合は他のエントリから補完
-      if (!wordCounts[word].意味 && k.意味) {
-        wordCounts[word].意味 = k.意味;
+      if (!wordCounts[key].意味 && k.意味) {
+        wordCounts[key].意味 = k.意味;
+      }
+
+      // 品詞カウント
+      const pos = k.品詞 || '';
+      wordCounts[key].posCounts[pos] = (wordCounts[key].posCounts[pos] || 0) + 1;
+
+      // meaningsByPos: 品詞→意味配列
+      if (!wordCounts[key].meaningsByPos[pos]) {
+        wordCounts[key].meaningsByPos[pos] = [];
+      }
+      const meaningText = k.意味 || '';
+      const meaningKey = `${pos}__${meaningText}`;
+      let existingMeaning = wordCounts[key].meaningsByPos[pos].find(m => m.意味 === meaningText);
+      if (!existingMeaning) {
+        existingMeaning = { 意味: meaningText, 品詞: pos, レベル: k.レベル, 出題回数: 0, 大問IDs: [], key: meaningKey };
+        wordCounts[key].meaningsByPos[pos].push(existingMeaning);
+      }
+      existingMeaning.出題回数++;
+      if (!existingMeaning.大問IDs.includes(k.大問ID)) {
+        existingMeaning.大問IDs.push(k.大問ID);
       }
     });
-    
+
+    // 代表値を設定 & フラットなmeanings配列を生成
+    Object.values(wordCounts).forEach(entry => {
+      // 全意味をフラット化
+      const allMeanings = Object.values(entry.meaningsByPos).flat();
+      entry.meanings = allMeanings;
+
+      if (allMeanings.length > 0) {
+        const sorted = [...allMeanings].sort((a, b) => b.出題回数 - a.出題回数);
+        entry.意味 = sorted[0].意味;
+        entry.レベル = sorted[0].レベル;
+      }
+
+      // 品詞の代表値（最多品詞）
+      const posEntries = Object.entries(entry.posCounts).sort((a, b) => b[1] - a[1]);
+      if (posEntries.length > 0) {
+        entry.品詞 = posEntries[0][0];
+        entry.extraPosCount = posEntries.length - 1; // 他の品詞数
+      }
+
+      // 代表的な熟語記法（最多出題の意味が熟語記法を含む場合）
+      if (allMeanings.length > 0) {
+        const sorted = [...allMeanings].sort((a, b) => b.出題回数 - a.出題回数);
+        const topParsed = parseIdiomNotation(sorted[0].意味);
+        entry.topIdiom = topParsed.isIdiom ? topParsed.displayWord : null;
+      }
+    });
+
     // 出題回数順にソート
     const results = Object.values(wordCounts).sort((a, b) => b.出題回数 - a.出題回数);
     
     setUniSearchResults(results);
-    setUniSearchPage(1);
+    setUniSearchDisplayCount(50);
     setHasUniSearched(true);
   };
+
+  // トグル切替時に再検索
+  useEffect(() => {
+    if (hasUniSearched) {
+      handleUniSearch();
+    }
+  }, [groupByMeaning, groupByPos]);
 
   // 大学別検索：フィルター切り替え
   const toggleUniSearchFilter = (key, value) => {
@@ -629,14 +700,8 @@ export default function WordSearch() {
   };
 
   // 大学別検索：ページネーション
-  const getPagedUniSearchResults = () => {
-    const start = (uniSearchPage - 1) * 50;
-    const end = start + 50;
-    return uniSearchResults.slice(start, end);
-  };
-
-  const getTotalPages = () => {
-    return Math.ceil(uniSearchResults.length / 50);
+  const getDisplayedUniSearchResults = () => {
+    return uniSearchResults.slice(0, uniSearchDisplayCount);
   };
 
   // 大学別検索：チェックボックストグル
@@ -652,7 +717,7 @@ export default function WordSearch() {
 
   // 大学別検索：全選択/全解除（現在のページのみ）
   const toggleAllCurrentPage = () => {
-    const currentPageWords = getPagedUniSearchResults().map(item => item.単語);
+    const currentPageWords = getDisplayedUniSearchResults().map(item => item.単語);
     const allSelected = currentPageWords.every(word => selectedUniWords.includes(word));
     
     if (allSelected) {
@@ -673,21 +738,77 @@ export default function WordSearch() {
     window.open(url, '_blank');
   };
 
+  // 大学別検索：大学フィルタが適用されているかどうか
+  const isUniFiltered = uniSearchFilters.universities.length > 0 || uniSearchFilters.faculties.length > 0 || uniSearchFilters.yearFrom || uniSearchFilters.yearTo;
+
   // 単語詳細モーダル：出題大問を取得
   const handleWordDetailClick = (wordData) => {
-    setSelectedWordDetail(wordData);
-    
-    // その単語が出現した大問の詳細を取得
-    const mondaiDetails = wordData.大問IDs.map(id => {
-      return mondaiData.find(m => m.大問ID === id);
-    }).filter(Boolean).sort((a, b) => {
-      // 年度新しい順
-      const yearDiff = parseInt(b.年度) - parseInt(a.年度);
-      if (yearDiff !== 0) return yearDiff;
-      return parseInt(a.大問ID) - parseInt(b.大問ID);
+    setModalShowAll(false);
+
+    // selectedMeaningsの初期値（意味のkeyで管理）
+    // グループ化ON（トグル1 or 両方ON）=全意味選択、両方OFF=クリック行の意味のみ
+    if ((groupByMeaning || groupByPos) && wordData.meanings && wordData.meanings.length > 1) {
+      setSelectedMeanings(wordData.meanings.map(m => m.key));
+    } else {
+      setSelectedMeanings(wordData.meanings ? wordData.meanings.map(m => m.key) : []);
+    }
+
+    // 「全ての検索結果」用データを計算
+    const allowedLevels = ['基礎', '標準', '上級', '修練'];
+    const wordLower = wordData.単語.toLowerCase();
+
+    // 全キーワードからこの単語の全データを取得
+    const allKeywordsForWord = keywordData.filter(k =>
+      k.単語?.toLowerCase() === wordLower && allowedLevels.includes(k.レベル)
+    );
+
+    // 全データのmeaningsByPos構築
+    const allMeaningsByPos = {};
+    const allMondaiIDs = [];
+    allKeywordsForWord.forEach(k => {
+      const pos = k.品詞 || '';
+      if (!allMeaningsByPos[pos]) allMeaningsByPos[pos] = [];
+      const meaningText = k.意味 || '';
+      const meaningKey = `${pos}__${meaningText}`;
+      let existing = allMeaningsByPos[pos].find(m => m.意味 === meaningText);
+      if (!existing) {
+        existing = { 意味: meaningText, 品詞: pos, レベル: k.レベル, 出題回数: 0, 大問IDs: [], key: meaningKey };
+        allMeaningsByPos[pos].push(existing);
+      }
+      existing.出題回数++;
+      if (!existing.大問IDs.includes(k.大問ID)) {
+        existing.大問IDs.push(k.大問ID);
+      }
+      if (!allMondaiIDs.includes(k.大問ID)) {
+        allMondaiIDs.push(k.大問ID);
+      }
     });
-    
-    setWordDetailMondai(mondaiDetails);
+
+    const allMeaningsFlat = Object.values(allMeaningsByPos).flat();
+    const allMondaiDetails = allMondaiIDs.map(id => mondaiData.find(m => m.大問ID === id))
+      .filter(Boolean).sort((a, b) => {
+        const yearDiff = parseInt(b.年度) - parseInt(a.年度);
+        if (yearDiff !== 0) return yearDiff;
+        return parseInt(a.大問ID) - parseInt(b.大問ID);
+      });
+
+    // フィルタ済みデータの大問詳細
+    const filteredMondaiDetails = wordData.大問IDs.map(id => mondaiData.find(m => m.大問ID === id))
+      .filter(Boolean).sort((a, b) => {
+        const yearDiff = parseInt(b.年度) - parseInt(a.年度);
+        if (yearDiff !== 0) return yearDiff;
+        return parseInt(a.大問ID) - parseInt(b.大問ID);
+      });
+
+    const detailData = {
+      ...wordData,
+      allMeanings: allMeaningsFlat,
+      allMeaningsByPos: allMeaningsByPos,
+      allMondaiDetails: allMondaiDetails,
+      filteredMondaiDetails: filteredMondaiDetails
+    };
+
+    setSelectedWordDetail(detailData);
     setShowWordDetailModal(true);
   };
 
@@ -1651,6 +1772,40 @@ export default function WordSearch() {
                   <h3 className="text-lg font-semibold text-gray-800">
                     検索結果: {uniSearchResults.length}件
                   </h3>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm ${groupByMeaning ? 'text-gray-800' : 'text-gray-400'}`}>
+                        同じ品詞・異なる意味をまとめる
+                      </span>
+                      <div
+                        onClick={() => {
+                          if (!groupByPos) setGroupByMeaning(!groupByMeaning);
+                        }}
+                        className={`relative w-12 h-6 rounded-full transition-colors ${
+                          groupByMeaning
+                            ? groupByPos ? 'bg-emerald-400 cursor-not-allowed' : 'bg-emerald-600 cursor-pointer'
+                            : 'bg-gray-300 cursor-pointer'
+                        }`}
+                      >
+                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${groupByMeaning ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm ${groupByPos ? 'text-gray-800' : 'text-gray-400'}`}>
+                        同じ綴り・異なる品詞もまとめる
+                      </span>
+                      <div
+                        onClick={() => {
+                          const next = !groupByPos;
+                          setGroupByPos(next);
+                          if (next) setGroupByMeaning(true);
+                        }}
+                        className={`relative w-12 h-6 rounded-full cursor-pointer transition-colors ${groupByPos ? 'bg-emerald-600' : 'bg-gray-300'}`}
+                      >
+                        <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${groupByPos ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                      </div>
+                    </div>
+                  </div>
                   {selectedUniWords.length > 0 && (
                     <button
                       onClick={handleUniBulkCompare}
@@ -1676,12 +1831,12 @@ export default function WordSearch() {
                               <button
                                 onClick={toggleAllCurrentPage}
                                 className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${
-                                  getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語))
+                                  getDisplayedUniSearchResults().length > 0 && getDisplayedUniSearchResults().every(item => selectedUniWords.includes(item.単語))
                                     ? 'bg-emerald-600 border-emerald-500 text-white'
                                     : 'border-gray-300 hover:border-emerald-400'
                                 }`}
                               >
-                                {getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語)) && (
+                                {getDisplayedUniSearchResults().length > 0 && getDisplayedUniSearchResults().every(item => selectedUniWords.includes(item.単語)) && (
                                   <span className="text-xs">✓</span>
                                 )}
                               </button>
@@ -1698,12 +1853,12 @@ export default function WordSearch() {
                               <button
                                 onClick={toggleAllCurrentPage}
                                 className={`w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all ${
-                                  getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語))
+                                  getDisplayedUniSearchResults().length > 0 && getDisplayedUniSearchResults().every(item => selectedUniWords.includes(item.単語))
                                     ? 'bg-emerald-600 border-emerald-500 text-white'
                                     : 'border-gray-300 hover:border-emerald-400'
                                 }`}
                               >
-                                {getPagedUniSearchResults().length > 0 && getPagedUniSearchResults().every(item => selectedUniWords.includes(item.単語)) && (
+                                {getDisplayedUniSearchResults().length > 0 && getDisplayedUniSearchResults().every(item => selectedUniWords.includes(item.単語)) && (
                                   <span className="text-sm font-bold">✓</span>
                                 )}
                               </button>
@@ -1711,8 +1866,8 @@ export default function WordSearch() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                          {getPagedUniSearchResults().map((item, idx) => {
-                            const rank = (uniSearchPage - 1) * 50 + idx + 1;
+                          {getDisplayedUniSearchResults().map((item, idx) => {
+                            const rank = idx + 1;
                             const isSelected = selectedUniWords.includes(item.単語);
                             return (
                               <tr
@@ -1743,6 +1898,9 @@ export default function WordSearch() {
                                   <div className="flex flex-col gap-1 items-center">
                                     <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
                                       {item.品詞}
+                                      {item.extraPosCount > 0 && (
+                                        <span className="ml-0.5 text-emerald-600 font-medium">+{item.extraPosCount}</span>
+                                      )}
                                     </span>
                                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                                       item.レベル === '修練' ? 'bg-purple-100 text-purple-700' :
@@ -1755,13 +1913,27 @@ export default function WordSearch() {
                                   </div>
                                 </td>
                                 {/* スマホ用: 単語と意味 */}
-                                <td 
+                                <td
                                   className="md:hidden px-2 py-3 cursor-pointer"
                                   onClick={() => handleWordDetailClick(item)}
                                 >
                                   <div className="flex flex-col gap-0.5">
-                                    <span className="text-gray-900 font-medium">{item.単語}</span>
-                                    <span className="text-xs text-gray-500">{item.意味 || '-'}</span>
+                                    <span className="text-gray-900 font-medium">
+                                      {item.単語}
+                                      {item.topIdiom && (
+                                        <span className="text-xs text-gray-400 font-normal ml-1">({'\u203B'}{item.topIdiom})</span>
+                                      )}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {item.topIdiom && <span className="text-gray-400">{'\u203B'}</span>}
+                                      {(() => {
+                                        const parsed = parseIdiomNotation(item.意味);
+                                        return parsed.isIdiom ? parsed.displayMeaning : (item.意味 || '-');
+                                      })()}
+                                      {(groupByMeaning || groupByPos) && item.meanings && item.meanings.length > 1 && (
+                                        <span className="ml-1 text-emerald-600 font-medium">+{item.meanings.length - 1}</span>
+                                      )}
+                                    </span>
                                   </div>
                                 </td>
                                 {/* スマホ用: チェックボックス */}
@@ -1804,6 +1976,9 @@ export default function WordSearch() {
                                 >
                                   <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                                     {item.品詞}
+                                    {item.extraPosCount > 0 && (
+                                      <span className="ml-0.5 text-emerald-600 font-medium">+{item.extraPosCount}</span>
+                                    )}
                                   </span>
                                 </td>
                                 {/* PC用: レベル */}
@@ -1821,18 +1996,28 @@ export default function WordSearch() {
                                   </span>
                                 </td>
                                 {/* PC用: 単語 */}
-                                <td 
+                                <td
                                   className="hidden md:table-cell px-4 py-3 text-gray-900 font-medium cursor-pointer"
                                   onClick={() => handleWordDetailClick(item)}
                                 >
                                   {item.単語}
+                                  {item.topIdiom && (
+                                    <span className="text-xs text-gray-400 font-normal ml-1">({'\u203B'}{item.topIdiom})</span>
+                                  )}
                                 </td>
                                 {/* PC用: 意味 */}
-                                <td 
+                                <td
                                   className="hidden md:table-cell px-4 py-3 text-gray-600 cursor-pointer"
                                   onClick={() => handleWordDetailClick(item)}
                                 >
-                                  {item.意味 || '-'}
+                                  {item.topIdiom && <span className="text-gray-400">{'\u203B'}</span>}
+                                  {(() => {
+                                    const parsed = parseIdiomNotation(item.意味);
+                                    return parsed.isIdiom ? parsed.displayMeaning : (item.意味 || '-');
+                                  })()}
+                                  {(groupByMeaning || groupByPos) && item.meanings && item.meanings.length > 1 && (
+                                    <span className="ml-1 text-emerald-600 font-medium text-xs">+{item.meanings.length - 1}</span>
+                                  )}
                                 </td>
                                 {/* PC用: チェックボックス */}
                                 <td className="hidden md:table-cell px-3 py-3 text-center">
@@ -1857,52 +2042,17 @@ export default function WordSearch() {
                       </table>
                     </div>
 
-                    {/* ページネーション */}
-                    {getTotalPages() > 1 && (
-                      <div className="p-4 border-t bg-gray-50 flex items-center justify-center gap-2">
+                    {/* もっと見る */}
+                    {uniSearchDisplayCount < uniSearchResults.length && (
+                      <div className="p-4 border-t bg-gray-50 flex flex-col items-center gap-2">
                         <button
-                          onClick={() => setUniSearchPage(prev => Math.max(1, prev - 1))}
-                          disabled={uniSearchPage === 1}
-                          className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => setUniSearchDisplayCount(prev => prev + 50)}
+                          className="px-6 py-2 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700 transition-colors"
                         >
-                          前へ
+                          もっと見る
                         </button>
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: Math.min(5, getTotalPages()) }, (_, i) => {
-                            let pageNum;
-                            if (getTotalPages() <= 5) {
-                              pageNum = i + 1;
-                            } else if (uniSearchPage <= 3) {
-                              pageNum = i + 1;
-                            } else if (uniSearchPage >= getTotalPages() - 2) {
-                              pageNum = getTotalPages() - 4 + i;
-                            } else {
-                              pageNum = uniSearchPage - 2 + i;
-                            }
-                            return (
-                              <button
-                                key={pageNum}
-                                onClick={() => setUniSearchPage(pageNum)}
-                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                                  uniSearchPage === pageNum
-                                    ? 'bg-emerald-600 text-white'
-                                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                                }`}
-                              >
-                                {pageNum}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <button
-                          onClick={() => setUniSearchPage(prev => Math.min(getTotalPages(), prev + 1))}
-                          disabled={uniSearchPage === getTotalPages()}
-                          className="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          次へ
-                        </button>
-                        <span className="ml-4 text-sm text-gray-600">
-                          {uniSearchPage} / {getTotalPages()} ページ
+                        <span className="text-xs text-gray-400">
+                          {Math.min(uniSearchDisplayCount, uniSearchResults.length)} / {uniSearchResults.length} 件表示中
                         </span>
                       </div>
                     )}
@@ -1936,47 +2086,150 @@ export default function WordSearch() {
       </div>
 
       {/* 単語詳細モーダル */}
-      {showWordDetailModal && selectedWordDetail && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b bg-emerald-50">
+      {showWordDetailModal && selectedWordDetail && (() => {
+        // 現在のモードに応じた意味データ・大問データを選択
+        const currentMeanings = modalShowAll ? (selectedWordDetail.allMeanings || []) : (selectedWordDetail.meanings || []);
+        const currentMondaiAll = modalShowAll ? (selectedWordDetail.allMondaiDetails || []) : (selectedWordDetail.filteredMondaiDetails || []);
+
+        // selectedMeaningsでフィルタした大問IDs（keyベース）
+        const filteredMondaiIds = currentMeanings
+          .filter(m => selectedMeanings.includes(m.key))
+          .flatMap(m => m.大問IDs);
+        const uniqueFilteredIds = [...new Set(filteredMondaiIds)];
+        const filteredWordDetailMondai = currentMondaiAll.filter(m => uniqueFilteredIds.includes(m.大問ID));
+
+        // 品詞ごとにグルーピング
+        const meaningsByPosGroups = {};
+        currentMeanings.forEach(m => {
+          const pos = m.品詞 || '';
+          if (!meaningsByPosGroups[pos]) meaningsByPosGroups[pos] = [];
+          meaningsByPosGroups[pos].push(m);
+        });
+        const posGroupEntries = Object.entries(meaningsByPosGroups);
+
+        return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col">
+            <div className="p-4 md:p-6 border-b bg-emerald-50">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-2xl font-bold text-gray-900">{selectedWordDetail.単語}</h3>
-                    {selectedWordDetail.意味 && (
-                      <span className="text-lg text-gray-600">: {selectedWordDetail.意味}</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+                    <h3 className="text-xl md:text-2xl font-bold text-gray-900">{selectedWordDetail.単語}</h3>
                     <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                       {selectedWordDetail.品詞}
+                      {selectedWordDetail.extraPosCount > 0 && (
+                        <span className="ml-0.5 text-emerald-600 font-medium">+{selectedWordDetail.extraPosCount}</span>
+                      )}
                     </span>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      selectedWordDetail.レベル === '修練' ? 'bg-purple-100 text-purple-700' :
-                      selectedWordDetail.レベル === '上級' ? 'bg-red-100 text-red-700' :
-                      selectedWordDetail.レベル === '標準' ? 'bg-blue-100 text-blue-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {selectedWordDetail.レベル}
-                    </span>
-                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-bold">
+                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs md:text-sm font-bold">
                       出題 {selectedWordDetail.出題回数}回
                     </span>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowWordDetailModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors text-2xl font-bold"
+                  className="text-gray-400 hover:text-gray-600 transition-colors text-2xl font-bold ml-2"
                 >
                   ×
                 </button>
               </div>
             </div>
-            
-            <div className="p-6 overflow-y-auto flex-1">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">出現した大問</h4>
-              <div className="overflow-x-auto">
+
+            <div className="p-4 md:p-6 overflow-y-auto flex-1">
+              {/* 大学フィルタトグル */}
+              {isUniFiltered && (
+                <div className="flex justify-center mb-4">
+                  <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+                    <button
+                      onClick={() => {
+                        setModalShowAll(false);
+                        setSelectedMeanings(selectedWordDetail.meanings ? selectedWordDetail.meanings.map(m => m.key) : []);
+                      }}
+                      className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${
+                        !modalShowAll
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-white text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      絞込中の大学のみ
+                    </button>
+                    <button
+                      onClick={() => {
+                        setModalShowAll(true);
+                        setSelectedMeanings(selectedWordDetail.allMeanings ? selectedWordDetail.allMeanings.map(m => m.key) : []);
+                      }}
+                      className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-colors ${
+                        modalShowAll
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-white text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      すべての検索結果
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 意味一覧トグル（品詞ごとにグルーピング） */}
+              {posGroupEntries.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">意味</h4>
+                  <div className="space-y-3">
+                    {posGroupEntries.map(([pos, meanings]) => (
+                      <div key={pos}>
+                        {posGroupEntries.length > 1 && (
+                          <div className="text-xs font-semibold text-gray-500 mb-1">{pos}</div>
+                        )}
+                        <div className="flex flex-wrap gap-1.5 md:gap-2">
+                          {meanings.map((m, mIdx) => {
+                            const isSelected = selectedMeanings.includes(m.key);
+                            const parsed = parseIdiomNotation(m.意味);
+                            return (
+                              <button
+                                key={mIdx}
+                                onClick={() => {
+                                  setSelectedMeanings(prev =>
+                                    isSelected
+                                      ? prev.filter(v => v !== m.key)
+                                      : [...prev, m.key]
+                                  );
+                                }}
+                                className={`px-2.5 md:px-3 py-1 md:py-1.5 rounded-full text-xs md:text-sm transition-colors ${
+                                  isSelected
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                {parsed.isIdiom ? (
+                                  <>
+                                    <span className="font-medium">{parsed.displayWord}</span>
+                                    {parsed.displayMeaning && ` ${parsed.displayMeaning}`}
+                                  </>
+                                ) : (
+                                  parsed.displayMeaning || '-'
+                                )}
+                                <span className="ml-1 opacity-70 text-xs">({m.出題回数})</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                出現した大問
+                {filteredWordDetailMondai.length !== currentMondaiAll.length && (
+                  <span className="ml-2 text-xs text-gray-400 font-normal">
+                    ({filteredWordDetailMondai.length} / {currentMondaiAll.length}件)
+                  </span>
+                )}
+              </h4>
+
+              {/* PC用テーブル */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50">
                     <tr>
@@ -1989,17 +2242,12 @@ export default function WordSearch() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {wordDetailMondai.map((mondai, idx) => {
-                      // この大問の1つ目のハッシュタグを取得
+                    {filteredWordDetailMondai.map((mondai, idx) => {
                       const firstHashtag = hashtagsData.find(h => h.大問ID === mondai.大問ID);
-                      
                       return (
                         <tr
                           key={idx}
-                          onClick={() => {
-                            setShowWordDetailModal(false);
-                            router.push(`/mondai/${mondai.識別名}`);
-                          }}
+                          onClick={() => window.open(`/mondai/${mondai.識別名}`, '_blank')}
                           className="hover:bg-emerald-50 cursor-pointer transition-colors"
                         >
                           <td className="px-3 py-3 text-gray-800">{mondai.大学名}</td>
@@ -2025,19 +2273,55 @@ export default function WordSearch() {
                   </tbody>
                 </table>
               </div>
+
+              {/* スマホ用カード形式 */}
+              <div className="md:hidden space-y-2">
+                {filteredWordDetailMondai.map((mondai, idx) => {
+                  const firstHashtag = hashtagsData.find(h => h.大問ID === mondai.大問ID);
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => window.open(`/mondai/${mondai.識別名}`, '_blank')}
+                      className="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-emerald-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-medium text-gray-800">{mondai.大学名}</span>
+                        <span className="text-xs text-gray-500">{mondai.年度}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <span>{mondai.日程}</span>
+                        <span>·</span>
+                        <span>{mondai.学部}</span>
+                        <span>·</span>
+                        <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-xs font-medium">
+                          {mondai.大問番号}
+                        </span>
+                      </div>
+                      {(mondai.ジャンル || firstHashtag) && (
+                        <div className="flex items-center gap-2 mt-1 text-xs">
+                          {mondai.ジャンル && <span className="text-gray-500">{mondai.ジャンル}</span>}
+                          {firstHashtag && <span className="text-emerald-600">#{firstHashtag.ハッシュタグ}</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            
-            <div className="p-4 border-t bg-gray-50 flex justify-end">
+
+            <div className="p-4 border-t bg-gray-50 flex items-center justify-between gap-3">
+              <span className="text-xs text-gray-400">※出題回数の多すぎる意味は掲載していません</span>
               <button
                 onClick={() => setShowWordDetailModal(false)}
-                className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium transition-colors"
+                className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 font-medium transition-colors shrink-0"
               >
                 閉じる
               </button>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* スマホ用の固定比較実行ボタン */}
       {pageMode === 'compare' && (
