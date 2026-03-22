@@ -1585,7 +1585,7 @@ export default function WordSearch() {
                       
                       return (
                         <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-2 py-3">
+                          <td className="px-2 py-2.5 md:py-3">
                             <input
                               type="text"
                               value={word}
@@ -1597,7 +1597,7 @@ export default function WordSearch() {
                           {compareBooks.map((book, bookIdx) => {
                             if (!result || !result[book]) {
                               return (
-                                <td key={bookIdx} className="px-2 py-3 text-center">
+                                <td key={bookIdx} className="px-2 py-2.5 md:py-3 text-center">
                                   <span className="text-gray-300">-</span>
                                 </td>
                               );
@@ -1618,7 +1618,7 @@ export default function WordSearch() {
                             
                             const mobileColors = ['text-slate-600', 'text-cyan-700', 'text-teal-600'];
                             return (
-                              <td key={bookIdx} className={`px-2 py-3 text-center ${statusInfo.bg}`}>
+                              <td key={bookIdx} className={`px-2 py-2.5 md:py-3 text-center ${statusInfo.bg}`}>
                                 <div className="flex flex-col items-center gap-1">
                                   {/* モバイル: 書籍色 */}
                                   <span className={`text-3xl font-bold md:hidden ${mobileColors[bookIdx]}`}>
