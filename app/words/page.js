@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Search, Info, ChevronUp, ChevronDown, Filter, ExternalLink } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { loadWordData, searchWord, getAvailableBooks, getWordBookMatrix } from '@/lib/loadWordData';
@@ -14,6 +14,7 @@ import { parseIdiomNotation } from '@/lib/parseIdiomNotation';
 
 export default function WordSearch() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [wordData, setWordData] = useState([]);
   const [availableBooks, setAvailableBooks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,10 +81,10 @@ export default function WordSearch() {
     async function fetchData() {
       const data = await loadWordData();
       setWordData(data);
-      
+
       const books = getAvailableBooks(data);
       setAvailableBooks(books);
-      
+
       const initialSelection = {};
       const initialOrder = [];
       books.forEach((book, idx) => {
@@ -96,26 +97,112 @@ export default function WordSearch() {
       });
       setSelectedBooks(initialSelection);
       setSelectionOrder(initialOrder);
-      
+
       setCompareBooks(books.slice(0, 3));
-      
+
       // キーワードデータと大問データを読み込み
       const keywords = await loadKeywordData();
       setKeywordData(keywords);
-      
+
       const allData = await loadAllData();
-      setMondaiData(allData.mondai);
+      setMondaiData(allData.reading);
       setHashtagsData(allData.hashtags);
-      
+
       // 単語マスターデータを読み込み
       const wordMaster = await loadWordMasterData();
       setWordMasterData(wordMaster);
-      
+
       // 単語帳マスターデータを読み込み（ASIN）
       const tangochoMaster = await loadTangochoMasterData();
       setTangochoMasterData(tangochoMaster);
 
       setLoading(false);
+
+      // ── URLパラメータ処理（ローカル変数で直接処理）
+      const mode    = searchParams.get('mode');
+      const qParam  = searchParams.get('q');
+      const book1   = searchParams.get('book1');
+      const book2   = searchParams.get('book2');
+      const book3   = searchParams.get('book3');
+      const univParam = searchParams.get('univ');
+
+      if (qParam) {
+        // 単語検索モード: 検索実行
+        const word = qParam.trim().toLowerCase();
+        setSearchInput(qParam);
+        const results = searchWord(data, word);
+        const bookData = {};
+        results.forEach(row => {
+          bookData[row.単語帳名称] = {
+            status: row.掲載区分 === '見出し語' ? 'main' : 'related',
+            number: row.単語帳内番号 || null,
+            page: row.ページ数 || null,
+          };
+        });
+        setSearchResult({ word, found: results.length > 0, books: bookData, allResults: results });
+        setHasSearched(true);
+        setSearchedWordInfo(getWordInfoGrouped(wordMaster, word));
+        const matchedKw = keywords.filter(k => k.単語?.toLowerCase() === word);
+        const mondaiIds = [...new Set(matchedKw.map(k => k.大問ID))];
+        const appeared = mondaiIds.map(id => allData.reading.find(m => m.大問ID === id)).filter(Boolean);
+        setAppearedMondai(appeared);
+        const meanings = [...new Set(matchedKw.filter(k => k.意味).map(k => k.意味))];
+        setAvailableMeanings(meanings);
+        setMeaningFilters(meanings);
+
+      } else if (mode === 'compare') {
+        // 単語帳比較モード: 指定された単語帳を選択
+        setPageMode('compare');
+        const paramBooks = [book1, book2, book3].map(b => (b && books.includes(b) ? b : ''));
+        // 有効な指定がなければデフォルトのまま
+        if (paramBooks.some(b => b)) {
+          setCompareBooks(paramBooks);
+        }
+
+      } else if (mode === 'university' && univParam) {
+        // 大学別検索モード: 大学を設定して検索実行
+        setPageMode('university');
+        const univ = univParam.trim();
+        const newFilters = {
+          yearFrom: '', yearTo: '', universities: [univ],
+          faculties: [], partsOfSpeech: [], levels: [],
+        };
+        setUniSearchFilters(newFilters);
+        // ローカル変数で検索ロジックを直接実行
+        const filteredMondai = allData.reading.filter(m => m.大学名 === univ);
+        const filteredIds = filteredMondai.map(m => m.大問ID);
+        const allowedLevels = ['基礎', '標準', '上級', '修練'];
+        const filteredKw = keywords.filter(k => filteredIds.includes(k.大問ID) && allowedLevels.includes(k.レベル));
+        const wordCounts = {};
+        filteredKw.forEach(k => {
+          const word = k.単語?.toLowerCase();
+          if (!word) return;
+          const key = word; // groupByPos=true (デフォルト)
+          if (!wordCounts[key]) {
+            wordCounts[key] = { 単語: k.単語, 品詞: k.品詞, レベル: k.レベル, 意味: k.意味,
+              出題回数: 0, 大問IDs: [], meaningsByPos: {}, posCounts: {} };
+          }
+          wordCounts[key].出題回数++;
+          wordCounts[key].大問IDs.push(k.大問ID);
+          const pos = k.品詞 || 'その他';
+          if (!wordCounts[key].meaningsByPos[pos]) wordCounts[key].meaningsByPos[pos] = [];
+          if (k.意味 && !wordCounts[key].meaningsByPos[pos].includes(k.意味))
+            wordCounts[key].meaningsByPos[pos].push(k.意味);
+          wordCounts[key].posCounts[pos] = (wordCounts[key].posCounts[pos] || 0) + 1;
+        });
+        Object.values(wordCounts).forEach(entry => {
+          const sorted = filteredKw.filter(k => k.単語?.toLowerCase() === entry.単語?.toLowerCase() && k.意味)
+            .sort((a, b) => (parseInt(b.出題回数) || 0) - (parseInt(a.出題回数) || 0));
+          if (sorted.length > 0) {
+            const topParsed = parseIdiomNotation(sorted[0].意味);
+            entry.topIdiom = topParsed.isIdiom ? topParsed.displayWord : null;
+          }
+        });
+        const results = Object.values(wordCounts).sort((a, b) => b.出題回数 - a.出題回数);
+        setUniSearchResults(results);
+        setUniSearchDisplayCount(50);
+        setHasUniSearched(true);
+      }
     }
     fetchData();
   }, []);
@@ -138,74 +225,6 @@ export default function WordSearch() {
         setShouldAutoCompare(false);
     }
     }, [compareWords, pageMode, shouldAutoCompare]);
-
-    useEffect(() => {
-        async function fetchData() {
-            const data = await loadWordData();
-            setWordData(data);
-            
-            const books = getAvailableBooks(data);
-            setAvailableBooks(books);
-            
-            const initialSelection = {};
-            const initialOrder = [];
-            books.forEach((book, idx) => {
-            if (idx < 3) {
-                initialSelection[book] = true;
-                initialOrder.push(book);
-            } else {
-                initialSelection[book] = false;
-            }
-            });
-            setSelectedBooks(initialSelection);
-            setSelectionOrder(initialOrder);
-            
-            setCompareBooks(books.slice(0, 3));
-            
-            // キーワードデータと大問データを読み込み
-            const keywords = await loadKeywordData();
-            setKeywordData(keywords);
-            
-            const allData = await loadAllData();
-            setMondaiData(allData.mondai);
-            setHashtagsData(allData.hashtags);
-            
-            setLoading(false);
-            
-            // URLパラメータから単語を受け取る処理を追加
-            const urlParams = new URLSearchParams(window.location.search);
-            const mode = urlParams.get('mode');
-            const wordsParam = urlParams.get('words');
-            
-            if (mode === 'compare' && wordsParam) {
-            try {
-                const words = JSON.parse(decodeURIComponent(wordsParam));
-                const wordCount = Math.max(10, words.length);
-                
-                setPageMode('compare');
-                setCompareRowCount(wordCount);
-                
-                const newWords = Array(wordCount).fill('');
-                words.forEach((word, idx) => {
-                if (idx < wordCount) {
-                    newWords[idx] = word;
-                }
-                });
-                setCompareWords(newWords);
-                
-                // 自動で比較実行
-                setTimeout(() => {
-                const filledWords = newWords.filter(w => w.trim().length > 0);
-                const results = getWordBookMatrix(data, filledWords, books.slice(0, 3));
-                setCompareResults(results);
-                }, 100);
-            } catch (error) {
-                console.error('URLパラメータの解析に失敗:', error);
-            }
-            }
-        }
-        fetchData();
-        }, []);
 
   // 検索した単語が出現した大問を取得
   const findAppearedMondai = (word) => {
@@ -846,41 +865,24 @@ export default function WordSearch() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
       <Header 
         pageTitle="単語検索" 
-        pageDescription="シンキロウ/英単語帳での掲載状況を一括検索"
+        pageDescription="シンキロウ/単語の出題状況・掲載状況をチェック"
       />
 
       <div className="max-w-7xl mx-auto px-4 pt-8 pb-4">
         <div className="bg-white rounded-lg shadow-md p-2 inline-flex">
-          <button
-            onClick={() => setPageMode('search')}
-            className={`px-6 py-3 rounded-md font-medium transition-colors ${
-              pageMode === 'search'
-                ? 'bg-emerald-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            単語検索
-          </button>
-          <button
-            onClick={() => setPageMode('compare')}
-            className={`px-6 py-3 rounded-md font-medium transition-colors ${
-              pageMode === 'compare'
-                ? 'bg-emerald-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            単語帳比較
-          </button>
-          <button
-            onClick={() => setPageMode('university')}
-            className={`px-6 py-3 rounded-md font-medium transition-colors ${
-              pageMode === 'university'
-                ? 'bg-emerald-600 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            大学別検索
-          </button>
+          {[['search', '単語検索'], ['compare', '単語帳比較'], ['university', '大学別検索']].map(([mode, label]) => (
+            <button
+              key={mode}
+              onClick={() => setPageMode(mode)}
+              className={`px-3 py-2.5 md:px-6 md:py-3 rounded-md font-medium transition-colors text-xs md:text-base whitespace-nowrap ${
+                pageMode === mode
+                  ? 'bg-emerald-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -1443,6 +1445,41 @@ export default function WordSearch() {
           </>
         ) : pageMode === 'compare' ? (
           <>
+            {/* モバイル固定フッター（書籍選択＋比較実行） */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40 px-3 py-2">
+              <div className="flex items-stretch gap-2">
+                {/* 左: 比較実行ボタン（縦長スクエア） */}
+                <button
+                  onClick={handleCompare}
+                  className="bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 active:bg-emerald-800 transition-colors flex flex-col items-center justify-center gap-1 px-3 shrink-0 min-h-[80px]"
+                >
+                  <Search size={18} />
+                  <span className="text-xs font-medium leading-tight text-center">比較<br/>実行</span>
+                </button>
+                {/* 右: プルダウン3つ */}
+                <div className="flex-1 flex flex-col gap-1.5">
+                  {compareBooks.map((book, idx) => {
+                    const labels     = ['1', '2', '3'];
+                    const bgs        = ['bg-slate-600', 'bg-cyan-700', 'bg-teal-600'];
+                    return (
+                      <div key={idx} className="flex items-center gap-1.5">
+                        <span className={`${bgs[idx]} text-white text-xs font-bold w-5 h-5 rounded flex items-center justify-center shrink-0`}>
+                          {labels[idx]}
+                        </span>
+                        <select
+                          value={book}
+                          onChange={e => handleCompareBookChange(idx, e.target.value)}
+                          className="flex-1 px-2 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        >
+                          {availableBooks.map(b => <option key={b} value={b}>{b}</option>)}
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <Search className="text-emerald-600" size={24} />
@@ -1476,11 +1513,11 @@ export default function WordSearch() {
             <div className="bg-white rounded-lg shadow-md p-4 mb-6">
               <div className="flex items-center justify-center gap-8 text-sm mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-emerald-600">◯</span>
+                  <span className="text-2xl font-bold text-gray-500">◯</span>
                   <span className="text-gray-700">見出し語掲載</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-amber-600">△</span>
+                  <span className="text-2xl font-bold text-gray-500">△</span>
                   <span className="text-gray-700">関連語掲載</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1519,21 +1556,26 @@ export default function WordSearch() {
                           </button>
                         </div>
                       </th>
-                      {compareBooks.map((book, idx) => (
-                        <th key={idx} className="px-2 py-4 text-center">
-                          <select
-                            value={book}
-                            onChange={(e) => handleCompareBookChange(idx, e.target.value)}
-                            className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          >
-                            {availableBooks.map(bookName => (
-                              <option key={bookName} value={bookName}>
-                                {bookName}
-                              </option>
-                            ))}
-                          </select>
-                        </th>
-                      ))}
+                      {compareBooks.map((book, idx) => {
+                        const labels = ['1', '2', '3'];
+                        const bgs    = ['bg-slate-600', 'bg-cyan-700', 'bg-teal-600'];
+                        return (
+                          <th key={idx} className="px-2 py-4 text-center">
+                            {/* PC: セレクト */}
+                            <select
+                              value={book}
+                              onChange={e => handleCompareBookChange(idx, e.target.value)}
+                              className="hidden md:block w-full px-2 py-2 border border-gray-300 rounded-md text-sm font-semibold text-gray-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                            >
+                              {availableBooks.map(b => <option key={b} value={b}>{b}</option>)}
+                            </select>
+                            {/* モバイル: 123バッジ */}
+                            <span className={`md:hidden inline-flex items-center justify-center w-8 h-8 rounded ${bgs[idx]} text-white text-sm font-bold`}>
+                              {labels[idx]}
+                            </span>
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -1574,10 +1616,16 @@ export default function WordSearch() {
                                 .map(r => r.単語);
                             }
                             
+                            const mobileColors = ['text-slate-600', 'text-cyan-700', 'text-teal-600'];
                             return (
                               <td key={bookIdx} className={`px-2 py-3 text-center ${statusInfo.bg}`}>
                                 <div className="flex flex-col items-center gap-1">
-                                  <span className={`text-3xl font-bold ${statusInfo.color}`}>
+                                  {/* モバイル: 書籍色 */}
+                                  <span className={`text-3xl font-bold md:hidden ${mobileColors[bookIdx]}`}>
+                                    {statusInfo.symbol}
+                                  </span>
+                                  {/* PC: ステータス色 */}
+                                  <span className={`text-3xl font-bold hidden md:inline ${statusInfo.color}`}>
                                     {statusInfo.symbol}
                                   </span>
                                   {bookData?.status !== 'none' && (
@@ -1608,7 +1656,8 @@ export default function WordSearch() {
                 </table>
               </div>
 
-              <div className="p-4 bg-gray-50 border-t flex justify-center">
+              <div className="md:hidden h-[110px]" aria-hidden="true" />
+              <div className="hidden md:flex p-4 bg-gray-50 border-t justify-center">
                 <button
                   onClick={handleCompare}
                   className="px-8 py-3 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors flex items-center gap-2 font-medium"
@@ -2323,18 +2372,6 @@ export default function WordSearch() {
         );
       })()}
 
-      {/* スマホ用の固定比較実行ボタン */}
-      {pageMode === 'compare' && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 sm:hidden">
-          <button
-            onClick={handleCompare}
-            className="px-8 py-3 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 transition-all flex items-center gap-2 font-medium"
-          >
-            <Search size={20} />
-            比較実行
-          </button>
-        </div>
-      )}
 
       {/* フィルタードロップダウンを閉じるためのオーバーレイ */}
       {openFilter && (

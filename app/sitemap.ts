@@ -45,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     // 大問ページを取得
-    const mondaiData = await fetchCSV('mondai.csv')
+    const mondaiData = await fetchCSV('reading.csv')
     const mondaiPages: MetadataRoute.Sitemap = mondaiData
       .filter((m: any) => m.識別名)
       .map((m: any) => ({
@@ -58,9 +58,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 大学ページを取得
     const universitiesData = await fetchCSV('universities.csv')
     const universityPages: MetadataRoute.Sitemap = universitiesData
-      .filter((u: any) => u.大学コード && u.大学コード.trim() !== '')
+      .filter((u: any) => u.コード && u.コード.trim() !== '')
       .map((u: any) => ({
-        url: `${baseUrl}/university/${u.大学コード}`,
+        url: `${baseUrl}/university/${u.コード}`,
         lastModified: new Date(),
         changeFrequency: 'weekly' as const,
         priority: 0.6,

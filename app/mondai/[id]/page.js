@@ -54,7 +54,7 @@ export default function MondaiDetail() {
   useEffect(() => {
     async function fetchData() {
       const data = await loadAllData();
-      const found = data.mondai.find(m => m.識別名 === params.id);
+      const found = data.reading.find(m => m.識別名 === params.id);
       
       if (found) {
         setMondaiData(found);

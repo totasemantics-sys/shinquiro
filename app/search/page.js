@@ -101,13 +101,13 @@ export default function Home() {
       const data = await loadAllData();
       const keywordsData = await loadKeywordData();
 
-      setMondai(data.mondai);
+      setMondai(data.reading);
       setSetumon(data.setsumon);
       setHashtags(data.hashtags);
       setKnowledge(data.knowledge);
       setUniversities(data.universities);
       setKeywords(keywordsData);
-      setFilteredResults(data.mondai);
+      setFilteredResults(data.reading);
       setLoading(false);
     }
     fetchData();
@@ -240,9 +240,9 @@ export default function Home() {
       results = results.filter(m => {
         const mondaiHashtags = hashtags.filter(h => h.大問ID === m.大問ID).map(h => h.ハッシュタグ);
         return (
-          m.大学名.toLowerCase().includes(keyword) ||
-          m.学部.toLowerCase().includes(keyword) ||
-          m.ジャンル.toLowerCase().includes(keyword) ||
+          (m.大学名 || '').toLowerCase().includes(keyword) ||
+          (m.学部 || '').toLowerCase().includes(keyword) ||
+          (m.ジャンル || '').toLowerCase().includes(keyword) ||
           mondaiHashtags.some(tag => tag.toLowerCase().includes(keyword))
         );
       });
@@ -348,8 +348,8 @@ export default function Home() {
     ? sortedKnowledge.filter(kg => kg.includes(knowledgeSearchInput))
     : sortedKnowledge;
 
-  const filteredUniversities = universities.filter(u => 
-    u.大学名.toLowerCase().includes(universityInput.toLowerCase())
+  const filteredUniversities = universities.filter(u =>
+    u.名称 && u.名称.toLowerCase().includes(universityInput.toLowerCase())
   );
 
 // 設問形式クリック時の処理
@@ -520,12 +520,12 @@ export default function Home() {
                       key={idx}
                       className="px-4 py-2 hover:bg-emerald-50 cursor-pointer text-gray-800"
                       onClick={() => {
-                        setFilters({...filters, university: u.大学名});
-                        setUniversityInput(u.大学名);
+                        setFilters({...filters, university: u.名称});
+                        setUniversityInput(u.名称);
                         setShowUniversitySuggestions(false);
                       }}
                     >
-                      <span className="text-xs text-gray-500">[{u.試験区分}]</span> {u.大学名}
+                      <span className="text-xs text-gray-500">[{u.区分}]</span> {u.名称}
                     </div>
                   ))}
                 </div>

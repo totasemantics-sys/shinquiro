@@ -12,7 +12,9 @@ export default function Header({ pageTitle, pageDescription }) {
 
   const navLinks = [
     { href: '/', label: 'トップ' },
-    { href: '/search', label: '長文検索' },
+    { href: '/unilist', label: '大学検索' },
+    { href: '/exam', label: '試験検索' },
+    { href: '/search', label: '長文詳細検索' },
     { href: '/words', label: '単語検索' },
     { href: '/articles', label: '記事', comingSoon: true },
   ];
@@ -30,7 +32,7 @@ export default function Header({ pageTitle, pageDescription }) {
             {/* ロゴとページタイトル */}
             <div className="flex items-center gap-4">
               <Link href="/">
-                <Image 
+                <Image
                   src="/logo.png"
                   alt="SHINQUIRO"
                   width={200}
@@ -48,35 +50,10 @@ export default function Header({ pageTitle, pageDescription }) {
               )}
             </div>
 
-            {/* PC用ナビゲーション */}
-            <nav className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.comingSoon ? '#' : link.href}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    link.comingSoon
-                      ? 'text-gray-400 cursor-not-allowed'
-                      : isActive(link.href)
-                        ? 'bg-emerald-600 text-white'
-                        : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
-                  }`}
-                  onClick={(e) => link.comingSoon && e.preventDefault()}
-                >
-                  {link.label}
-                  {link.comingSoon && (
-                    <span className="ml-1 text-xs bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">
-                      準備中
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </nav>
-
-            {/* スマホ用ハンバーガーメニューボタン */}
+            {/* ハンバーガーボタン（PC・スマホ共通） */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-emerald-600 transition-colors"
+              className="p-2 text-gray-600 hover:text-emerald-600 transition-colors"
               aria-label="メニュー"
             >
               {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -100,9 +77,9 @@ export default function Header({ pageTitle, pageDescription }) {
         </div>
       </header>
 
-      {/* スマホ用ドロップダウンメニュー */}
+      {/* ドロップダウンメニュー（PC・スマホ共通） */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-b border-emerald-100 shadow-md">
+        <div className="bg-white border-b border-emerald-100 shadow-md">
           <div className="max-w-7xl mx-auto px-4 py-4">
             <nav className="space-y-2">
               {navLinks.map((link) => (
@@ -132,7 +109,7 @@ export default function Header({ pageTitle, pageDescription }) {
                   )}
                 </Link>
               ))}
-              
+
               <div className="border-t border-gray-200 pt-2 mt-2">
                 <Link
                   href="/about/passage-levels"
