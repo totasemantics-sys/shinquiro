@@ -51,7 +51,7 @@ public/docs/                  # 説明ページ用Markdown
 
 | ファイル | 主キー | 用途 |
 |---------|--------|------|
-| mondai.csv | 大問ID | 大問マスタ（大学名,年度,語数,レベル等） |
+| reading.csv | 大問ID | 大問マスタ・長文問題（exam.csvとJOINして使用） |
 | setsumon.csv | 設問ID（大問IDで紐付け） | 設問詳細（カテゴリ,形式） |
 | knowledge.csv | 設問ID | 知識・文法タグ |
 | hashtags.csv | 大問ID | テーマタグ |
@@ -139,4 +139,5 @@ public/docs/                  # 説明ページ用Markdown
 - Google Analytics 4 / Search Console 導入
 - OGP画像（記事以外）・サイトマップ
 - Google AdSense / Amazon アフィリエイト
-- mondai.csv → reading.csv + exam.csv への移行（v4.x）
+- 識別名にアンダースコア区切り導入（試験IDと大問部分を分離、将来予定）
+- 大問IDプレフィックス方式（R/W/L/G）の導入（将来予定）

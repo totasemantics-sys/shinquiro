@@ -71,40 +71,40 @@
 #### 概要
 サイト全体のハブとして、各機能への導線を提供するランディングページ。
 
-#### セクション構成
+#### レイアウト構成
 
-1. **ヒーローセクション**
-   - サイトタイトル「大学受験英語の検索・分析システム」
-   - サイト説明文
+**上部: 今日の難単語バー**（max-w-[450px] mx-auto）
+- Sparklesアイコン（amber）＋「今日の難単語」ラベル（左固定）
+- 単語名（text-xl font-bold）＋出典テキスト（年度・大学名・学部、中央揃え）
+- 「意味を見る」ボタン（右固定）
+- keywords.csvから修練/上級レベルの単語を日付ハッシュで日替わり選択
+- モーダル: 単語名・品詞・意味（熟語記法対応）・出現大問・単語帳掲載状況
 
-2. **機能カード（3列）**
-   - 長文検索（緑）: `/search` へ
-   - 単語検索（青）: `/words` へ
-   - 今日の難単語（amber）: 日替わり難単語カード
+**中段: 3カラムグリッド**（lg:grid-cols-3、スマホは1列積み）
 
-3. **今日の難単語カード**
-   - keywords.csvから「修練」or「上級」レベルの単語を日替わりで1つ表示
-   - 日付文字列のハッシュ値でシード選択（同日中はリロードしても同じ単語）
-   - 単語名を中央揃えで大きく表示（text-2xl font-bold）、最大幅450px
-   - 出題年＆大学名を単語のすぐ下に中央揃えで表示
-   - 「意味を見る」ボタン（bg-emerald-600、中央揃え）でモーダル表示
-   - アイコン: Sparkles（Lucide React）、amber系カラー
+**左カラム: 名称から検索**
+- 「大学名で検索」: テキスト入力＋GOボタン → `/unilist?q=XXX`
+  - 入力中にサジェスト表示（最大8件）、クリックで直接 `/university/[コード]` へ
+- 「地方を選ぶ」: 11地方ボタン → `/unilist?region=XXX`
+  - 北海道/東北/北関東/南関東/甲信越/北陸/東海/関西/中国/四国/九州・沖縄
+- 下部ショートカット: 「国公立大学をすべて見る」「私立大学をすべて見る」ボタン
 
-4. **今日の難単語モーダル**
-   - 単語名・品詞・意味・出現大問・単語帳掲載状況を表示
-   - 熟語記法（<<>>）対応
+**中央カラム: 形式から検索**
+- 試験区分（国公立/私立トグル）
+- 📖 リーディング: 日本語記述 / 英語記述（各 あり/どちらでも/なし）
+- ✏️ ライティング: あり/どちらでも/なし（「あり」で英作文タイプ選択可）
+- 🎧 リスニング: あり/どちらでも/なし（「あり」で解答形式選択可）
+- 📝 文法問題: あり/どちらでも/なし（「あり」で問題タイプ選択可）
+- 「条件に合う試験を表示」ボタン → `/exam?tab=exam&...` へURLパラメータ付きで遷移
+- 「長文をもっと詳細に検索 →」リンク → `/search`
 
-5. **単語検索エリア**（下部）
-   - キーワード検索、試験条件検索、地方から大学検索の3エリア
-   - 各エリア間に`<hr>`で区切り
-
-6. **「名称から検索」エリア**
-   - テキスト入力で大学名を検索 → `/unilist?q=XXX`
-   - ボタン「条件に合う試験を表示」→ `/exam` へURLパラメータ付きで遷移
-
-7. **「地方を選ぶ」エリア**（名称から検索エリア内）
-   - 11地方ボタン: 北海道/東北/北関東/南関東/甲信越/北陸/東海/関西/中国/四国/九州・沖縄
-   - クリックで `/unilist?region=XXX` へ遷移
+**右カラム: 単語検索**
+- 「単語を調べる」: テキスト入力＋GOボタン → `/words?q=XXX`
+- `<hr>` 区切り
+- 「単語帳比較」: 3つのプルダウン（単語帳選択）＋「比較する」ボタン → `/words?mode=compare&book1=...`
+- `<hr>` 区切り
+- 「大学別検索」: テキスト入力＋GOボタン → `/words?mode=university&univ=XXX`
+  - 入力中にサジェスト表示（マスタデータに存在する大学名のみ有効）
 
 #### IMEキー問題対策
 - テキスト入力にEnterで検索する場合、日本語IME変換確定のEnterを誤検知しないよう `onCompositionStart/End` + `useRef(false)` でフラグ管理
@@ -406,7 +406,7 @@ textColors: ['text-slate-600', 'text-cyan-700', 'text-teal-600']
 
 | ファイル名 | 説明 | 読み込み元 |
 |-----------|------|-----------|
-| mondai.csv | 大問マスタ（長文） | loadData.js |
+| reading.csv | 長文問題マスタ（exam.csvとJOINして使用） | loadData.js |
 | setsumon.csv | 設問詳細 | loadData.js |
 | knowledge.csv | 知識・文法タグ | loadData.js |
 | hashtags.csv | テーマタグ | loadData.js |
@@ -416,11 +416,10 @@ textColors: ['text-slate-600', 'text-cyan-700', 'text-teal-600']
 | word_master.csv | 単語マスタ（品詞・意味） | loadWordMasterData.js |
 | tangocho_master.csv | 単語帳マスタ（ASIN） | loadTangochoMasterData.js |
 | articles.csv | 記事メタ情報 | loadArticlesData.js / loadArticlesDataServer.js |
-| exam.csv | 試験マスタ | loadExamData.js |
+| exam.csv | 試験マスタ（reading.csvとJOINして使用） | loadExamData.js |
 | writing.csv | 英作文問題 | loadExamData.js |
 | listening.csv | リスニング問題 | loadExamData.js |
 | grammar.csv | 文法問題 | loadExamData.js |
-| reading.csv | 長文問題（試験形式用） | loadExamData.js |
 
 ### 5.2 universities.csv（大学マスタ）
 ```
@@ -636,9 +635,10 @@ const isReadingLink = row._type === 'reading' && row.識別名;
 - [ ] Amazon アフィリエイト
 - [ ] Cookie同意バナー
 
-### データ拡充（v4.x 予定）
-- mondai.csv → reading.csv + exam.csv への移行（識別名にアンダースコア区切り導入）
-- 大問IDプレフィックス方式（R/W/L/G）の導入
+### データ拡充
+- [x] mondai.csv → reading.csv + exam.csv への移行（v4.0で完了）
+- [ ] 識別名にアンダースコア区切り導入（試験IDと大問部分を分離）
+- [ ] 大問IDプレフィックス方式（R/W/L/G）の導入
 
 ---
 
@@ -676,7 +676,11 @@ const isReadingLink = row._type === 'reading' && row.識別名;
 
 ### CSVファイル
 ```
-public/data/mondai.csv           → 大問マスタ（長文）
+public/data/reading.csv          → 長文問題マスタ（loadData.js + loadExamData.js 両方で使用）
+public/data/exam.csv             → 試験マスタ（reading.csvとJOIN）
+public/data/writing.csv          → 英作文問題
+public/data/listening.csv        → リスニング問題
+public/data/grammar.csv          → 文法問題
 public/data/setsumon.csv         → 設問詳細
 public/data/knowledge.csv        → 知識・文法タグ
 public/data/hashtags.csv         → テーマタグ
@@ -686,11 +690,6 @@ public/data/keywords.csv         → 重要単語マスタ
 public/data/word_master.csv      → 単語マスタ（品詞・意味）
 public/data/tangocho_master.csv  → 単語帳マスタ（ASIN）
 public/data/articles.csv         → 記事メタ情報
-public/data/exam.csv             → 試験マスタ
-public/data/reading.csv          → 長文問題（試験形式用）
-public/data/writing.csv          → 英作文問題
-public/data/listening.csv        → リスニング問題
-public/data/grammar.csv          → 文法問題
 ```
 
 ---
