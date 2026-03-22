@@ -29,7 +29,7 @@ app/                          # ページコンポーネント
 └── about/                    # 説明ページ群
 
 lib/                          # データ読み込みユーティリティ
-├── loadData.js               # mondai/setsumon/knowledge/hashtags/universities
+├── loadData.js               # reading(+exam結合)/setsumon/knowledge/hashtags/universities
 ├── loadExamData.js           # exam/reading/writing/listening/grammar
 ├── loadWordData.js           # tangocho.csv
 ├── loadKeywordData.js        # keywords.csv
@@ -51,7 +51,11 @@ public/docs/                  # 説明ページ用Markdown
 
 | ファイル | 主キー | 用途 |
 |---------|--------|------|
-| reading.csv | 大問ID | 大問マスタ・長文問題（exam.csvとJOINして使用） |
+| exam.csv | 試験ID | 試験マスタ（試験区分,大学名,年度,日程,方式,学部,制限時間,ASIN） |
+| reading.csv | 大問ID（R1,R2...） | 長文問題（exam.csvとJOINして使用） |
+| writing.csv | 大問ID（W1,W2...） | 英作文問題 |
+| listening.csv | 大問ID（L1,L2...） | リスニング問題 |
+| grammar.csv | 大問ID（G1,G2...） | 文法問題 |
 | setsumon.csv | 設問ID（大問IDで紐付け） | 設問詳細（カテゴリ,形式） |
 | knowledge.csv | 設問ID | 知識・文法タグ |
 | hashtags.csv | 大問ID | テーマタグ |
@@ -61,11 +65,6 @@ public/docs/                  # 説明ページ用Markdown
 | word_master.csv | 原形 | 単語マスタ（品詞,意味,レベル） |
 | tangocho_master.csv | 単語帳名称 | 単語帳マスタ（ASIN） |
 | articles.csv | slug | 記事メタ情報（image列でアイキャッチ指定可） |
-| exam.csv | 試験ID | 試験マスタ |
-| reading.csv | 大問ID | 長文問題（試験形式用） |
-| writing.csv | 大問ID | 英作文問題 |
-| listening.csv | 大問ID | リスニング問題 |
-| grammar.csv | 大問ID | 文法問題 |
 
 ## コーディング規約
 - コンポーネントは基本 `'use client'`（CSVデータをクライアントサイドで読み込み）
@@ -139,5 +138,3 @@ public/docs/                  # 説明ページ用Markdown
 - Google Analytics 4 / Search Console 導入
 - OGP画像（記事以外）・サイトマップ
 - Google AdSense / Amazon アフィリエイト
-- 識別名にアンダースコア区切り導入（試験IDと大問部分を分離、将来予定）
-- 大問IDプレフィックス方式（R/W/L/G）の導入（将来予定）
