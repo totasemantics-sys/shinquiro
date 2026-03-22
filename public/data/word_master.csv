@@ -739,7 +739,6 @@ age,age,動詞,必須,1,老化する
 age,age,名詞,必須,0,"年齢, 時代"
 age,aged,動詞,必須,1,老化する
 aged,aged,形容詞,上級,1,年老いた
-aged,aged,形容詞,上級,1,年老いた
 agency,agencies,名詞,基礎,1,機関
 agency,agency,名詞,基礎,1,機関
 agenda,agenda,名詞,基礎,1,議題
@@ -846,14 +845,14 @@ alcoholic,alcoholic,名詞,上級,1,アルコール依存症者
 alcoholic,alcoholic,形容詞,上級,1,アルコールの
 alcoholic,alcoholics,名詞,上級,1,アルコール依存症者
 alcohol,alcohols,名詞,基礎,1,アルコール
-alert,alert,動詞,標準,1,警告する
+alert,alert,動詞,標準,3,警告する
 alert,alert,名詞,標準,1,警報
-alert,alert,形容詞,標準,1,警戒した
-alert,alerted,動詞,標準,1,警告する
-alert,alerting,動詞,標準,1,警告する
+alert,alert,形容詞,標準,2,用心深い
+alert,alerted,動詞,標準,3,警告する
+alert,alerting,動詞,標準,3,警告する
 alertness,alertness,名詞,上級,1,油断のなさ
 alertness,alertnesses,名詞,上級,1,油断のなさ
-alert,alerts,動詞,標準,1,警告する
+alert,alerts,動詞,標準,3,警告する
 alert,alerts,名詞,標準,1,警報
 algae,algae,名詞,上級,1,藻類
 algae,algaes,名詞,上級,1,藻類
@@ -2555,6 +2554,7 @@ besiege,besiege,動詞,修練,1,包囲する
 besiege,besieged,動詞,修練,1,包囲する
 besiege,besieges,動詞,修練,1,包囲する
 besiege,besieging,動詞,修練,1,包囲する
+good,best,形容詞,必須,-1,良い
 bestow,bestow,動詞,上級,1,授ける
 bestowal,bestowal,名詞,修練,1,授与
 bestowal,bestowals,名詞,修練,1,授与
@@ -2572,6 +2572,7 @@ betray,betrays,動詞,上級,1,裏切る
 bet,bets,動詞,標準,1,賭ける
 bet,bets,名詞,標準,1,賭け
 bet,betted,動詞,標準,1,賭ける
+good,better,形容詞,必須,-1,良い
 better,better,形容詞,必須,-1,より良い
 better,better,副詞,必須,0,より良く
 bet,betting,動詞,標準,1,賭ける
@@ -2955,13 +2956,13 @@ bombing,bombing,名詞,標準,1,爆撃
 bombing,bombings,名詞,標準,1,爆撃
 bomb,bombs,動詞,標準,1,爆撃する
 bomb,bombs,名詞,標準,1,爆弾
-bond,bond,動詞,標準,1,結びつく
+bond,bond,動詞,標準,2,結びつく
 bond,bond,名詞,標準,1,絆
 bondage,bondage,名詞,上級,1,束縛
 bondage,bondages,名詞,上級,1,束縛
-bond,bonded,動詞,標準,1,結びつく
-bond,bonding,動詞,標準,1,結びつく
-bond,bonds,動詞,標準,1,結びつく
+bond,bonded,動詞,標準,2,結びつく
+bond,bonding,動詞,標準,2,結びつく
+bond,bonds,動詞,標準,2,結びつく
 bond,bonds,名詞,標準,1,絆
 bone,bone,名詞,基礎,1,骨
 bone,bones,名詞,基礎,1,骨
@@ -4356,8 +4357,10 @@ clamorous,clamorous,形容詞,上級,1,騒々しい
 clamor,clamors,動詞,上級,1,やかましく要求する
 clamor,clamors,名詞,上級,1,喧騒
 clam,clams,名詞,上級,1,ハマグリ
+clan,clan,名詞,上級,1,"一族, 仲間"
 clandestine,clandestine,形容詞,上級,1,秘密の
 clandestinely,clandestinely,副詞,上級,1,秘密に
+clan,clans,名詞,上級,1,"一族, 仲間"
 clap,clap,動詞,上級,1,拍手する
 clap,clap,名詞,上級,1,拍手
 clap,clapped,動詞,上級,1,拍手する
@@ -6013,7 +6016,6 @@ countenance,countenancing,動詞,上級,1,容認する
 counter,counter,動詞,標準,1,反論する
 counter,counter,名詞,標準,1,カウンター
 counter,counter,副詞,標準,1,反対に
-counter,counter,副詞,標準,1,反対に
 counteract,counteract,動詞,上級,1,対抗する
 counteract,counteracted,動詞,上級,1,対抗する
 counteract,counteracting,動詞,上級,1,対抗する
@@ -7379,12 +7381,12 @@ detach,detaches,動詞,上級,1,切り離す
 detach,detaching,動詞,上級,1,切り離す
 detachment,detachment,名詞,上級,1,分離
 detachment,detachments,名詞,上級,1,分離
-detail,detail,動詞,基礎,1,詳述する
+detail,detail,動詞,基礎,2,詳述する
 detail,detail,名詞,基礎,1,詳細
-detail,detailed,動詞,基礎,1,詳述する
+detail,detailed,動詞,基礎,2,詳述する
 detailed,detailed,形容詞,標準,1,詳細な
-detail,detailing,動詞,基礎,1,詳述する
-detail,details,動詞,基礎,1,詳述する
+detail,detailing,動詞,基礎,2,詳述する
+detail,details,動詞,基礎,2,詳述する
 detail,details,名詞,基礎,1,詳細
 detain,detain,動詞,上級,1,拘留する
 detain,detained,動詞,上級,1,拘留する
@@ -7649,9 +7651,6 @@ dilute,diluting,動詞,上級,1,薄める
 dilution,dilution,名詞,上級,1,希釈
 dilution,dilutions,名詞,上級,1,希釈
 dim,dim,動詞,標準,1,薄暗くする
-dim,dim,形容詞,標準,1,薄暗い
-dim,dim,形容詞,標準,1,薄暗い
-dim,dim,形容詞,標準,1,薄暗い
 dim,dim,形容詞,標準,1,薄暗い
 dime,dime,名詞,上級,1,10セント硬貨
 dimension,dimension,名詞,標準,1,次元
@@ -9704,7 +9703,6 @@ evict,evicts,動詞,上級,1,立ち退かせる
 evidence,evidence,名詞,基礎,1,証拠
 evidence,evidences,名詞,基礎,1,証拠
 evident,evident,形容詞,標準,1,明らかな
-evident,evident,形容詞,標準,1,明らかな
 evidently,evidently,副詞,標準,1,明らかに
 evil,evil,名詞,標準,1,悪
 evil,evil,形容詞,標準,1,邪悪な
@@ -10448,9 +10446,9 @@ favorable,favorable,形容詞,標準,1,好意的な
 favorably,favorably,副詞,上級,1,好意的に
 favor,favored,動詞,標準,1,好む
 favor,favoring,動詞,標準,1,好む
-favorite,favorite,名詞,基礎,1,お気に入り
-favorite,favorite,形容詞,基礎,1,お気に入りの
-favorite,favorites,名詞,基礎,1,お気に入り
+favorite,favorite,名詞,必須,0,お気に入り
+favorite,favorite,形容詞,必須,-1,お気に入りの
+favorite,favorites,名詞,必須,0,お気に入り
 favor,favors,動詞,標準,1,好む
 favor,favors,名詞,標準,1,好意
 faze,faze,動詞,上級,1,動揺させる
@@ -10610,16 +10608,22 @@ figment,figment,名詞,上級,1,作り事
 figment,figments,名詞,上級,1,作り事
 figurative,figurative,形容詞,上級,1,比喩的な
 figuratively,figuratively,副詞,上級,1,比喩的に
-figure,figure,動詞,基礎,2,(figure out) 理解する 
-figure,figure,動詞,基礎,3,思う
-figure,figure,名詞,基礎,1,"数字, (人の)姿, 図"
-figure,figured,動詞,基礎,2,(figure out) 理解する 
-figure,figured,動詞,基礎,3,思う
-figure,figures,動詞,基礎,2,(figure out) 理解する 
-figure,figures,動詞,基礎,3,思う
-figure,figures,名詞,基礎,1,"数字, (人の)姿, 図"
-figure,figuring,動詞,基礎,2,(figure out) 理解する 
-figure,figuring,動詞,基礎,3,思う
+figure,figure,動詞,基礎,4,<<figure out>> 理解する 
+figure,figure,動詞,基礎,5,思う
+figure,figure,名詞,基礎,1,数字
+figure,figure,名詞,基礎,2,(人の)姿
+figure,figure,名詞,基礎,3,図
+figure,figure,名詞,修練,6,<<figure of speech>>比喩表現
+figure,figured,動詞,基礎,4,<<figure out>> 理解する 
+figure,figured,動詞,基礎,5,思う
+figure,figures,動詞,基礎,4,<<figure out>> 理解する 
+figure,figures,動詞,基礎,5,思う
+figure,figures,名詞,基礎,1,数字
+figure,figures,名詞,基礎,2,(人の)姿
+figure,figures,名詞,基礎,3,図
+figure,figures,名詞,修練,6,<<figure of speech>>比喩表現
+figure,figuring,動詞,基礎,4,<<figure out>> 理解する 
+figure,figuring,動詞,基礎,5,思う
 file,file,動詞,標準,1,提出する
 file,file,名詞,標準,1,ファイル
 file,filed,動詞,標準,1,提出する
@@ -11009,12 +11013,13 @@ forage,forages,名詞,上級,1,飼料
 forage,foraging,動詞,上級,1,食料を探す
 foray,foray,名詞,上級,1,進出
 foray,forays,名詞,上級,1,進出
-forbid,forbid,動詞,上級,1,禁じる
+forbid,forbade,動詞,上級,2,禁じる
+forbid,forbid,動詞,上級,2,禁じる
+forbid,forbidden,動詞,上級,2,禁じる
 forbidden,forbidden,形容詞,上級,1,禁じられた
-forbidding,forbidding,形容詞,上級,1,近寄りがたい
-forbid,forbided,動詞,上級,1,禁じる
-forbid,forbiding,動詞,上級,1,禁じる
-forbid,forbids,動詞,上級,1,禁じる
+forbid,forbidding,動詞,上級,2,禁じる
+forbidding,forbidding,形容詞,上級,3,近寄りがたい
+forbid,forbids,動詞,上級,2,禁じる
 force,force,動詞,基礎,2,強制する
 force,force,名詞,基礎,1,力
 force,forced,動詞,基礎,2,強制する
@@ -11335,11 +11340,11 @@ frugality,frugality,名詞,上級,1,質素
 fruitful,fruitful,形容詞,上級,1,実りある
 fruition,fruition,名詞,上級,1,実現
 fruition,fruitions,名詞,上級,1,実現
-frustrate,frustrate,動詞,上級,1,いらだたせる
-frustrate,frustrated,動詞,上級,1,いらだたせる
-frustrated,frustrated,形容詞,標準,1,いらだった
-frustrate,frustrates,動詞,上級,1,いらだたせる
-frustrate,frustrating,動詞,上級,1,いらだたせる
+frustrate,frustrate,動詞,標準,2,いらだたせる
+frustrate,frustrated,動詞,標準,2,いらだたせる
+frustrated,frustrated,形容詞,標準,1,"不満な, いらだった"
+frustrate,frustrates,動詞,標準,2,いらだたせる
+frustrate,frustrating,動詞,標準,2,いらだたせる
 frustrating,frustrating,形容詞,標準,1,いらだたしい
 frustratingly,frustratingly,副詞,上級,1,いらだたしいことに
 frustration,frustration,名詞,標準,1,いらだち
@@ -11534,12 +11539,12 @@ gasp,gasps,名詞,上級,1,あえぎ
 gastrointestinal,gastrointestinal,形容詞,上級,1,胃腸の
 gate,gate,名詞,基礎,1,門
 gate,gates,名詞,基礎,1,門
-gather,gather,動詞,標準,1,集める
-gather,gathered,動詞,標準,1,集める
-gather,gathering,動詞,標準,1,集める
-gathering,gathering,名詞,上級,1,集まり
-gathering,gatherings,名詞,上級,1,集まり
-gather,gathers,動詞,標準,1,集める
+gather,gather,動詞,基礎,2,"集める,集まる"
+gather,gathered,動詞,基礎,2,"集める,集まる"
+gather,gathering,動詞,基礎,2,"集める,集まる"
+gathering,gathering,名詞,基礎,1,集まり
+gathering,gatherings,名詞,基礎,1,集まり
+gather,gathers,動詞,基礎,2,"集める,集まる"
 gaudy,gaudy,形容詞,上級,1,派手な
 gauge,gauge,動詞,標準,1,測定する
 gauge,gauge,名詞,標準,1,計器
@@ -11652,9 +11657,11 @@ germination,germination,名詞,上級,1,発芽
 germination,germinations,名詞,上級,1,発芽
 germ,germs,名詞,上級,1,細菌
 get,get,動詞,必須,0,得る
+get,get,動詞,標準,1,<<get it>>理解する
 get,gets,動詞,必須,0,得る
-get,getted,動詞,必須,0,得る
+get,gets,動詞,標準,1,<<get it>>理解する
 get,getting,動詞,必須,0,得る
+get,getting,動詞,標準,1,<<get it>>理解する
 ghetto,ghetto,名詞,上級,1,ゲットー
 ghetto,ghettoes,名詞,上級,1,ゲットー
 giant,giant,名詞,標準,1,巨人
@@ -11814,6 +11821,10 @@ gossip,gossiped,動詞,上級,1,噂話をする
 gossip,gossiping,動詞,上級,1,噂話をする
 gossip,gossips,動詞,上級,1,噂話をする
 gossip,gossips,名詞,上級,1,噂話
+get,got,動詞,必須,0,得る
+get,got,動詞,標準,1,<<get it>>理解する
+get,gotten,動詞,必須,0,得る
+get,gotten,動詞,標準,1,<<get it>>理解する
 govern,govern,動詞,上級,1,統治する
 governance,governance,名詞,標準,1,統治
 governance,governances,名詞,標準,1,統治
@@ -12749,14 +12760,14 @@ hunch,hunches,名詞,上級,1,直感
 hunger,hunger,名詞,標準,1,空腹
 hunger,hungers,名詞,標準,1,空腹
 hungry,hungry,形容詞,標準,1,空腹の
-hunt,hunt,動詞,標準,1,狩る
-hunt,hunt,名詞,標準,1,狩り
-hunt,hunted,動詞,標準,1,狩る
+hunt,hunt,動詞,基礎,1,狩る
+hunt,hunt,名詞,基礎,2,狩り
+hunt,hunted,動詞,基礎,1,狩る
 hunter,hunter,名詞,標準,1,猟師
 hunter,hunters,名詞,標準,1,猟師
-hunt,hunting,動詞,標準,1,狩る
-hunt,hunts,動詞,標準,1,狩る
-hunt,hunts,名詞,標準,1,狩り
+hunt,hunting,動詞,基礎,1,狩る
+hunt,hunts,動詞,基礎,1,狩る
+hunt,hunts,名詞,基礎,2,狩り
 hurdle,hurdle,名詞,上級,1,障害
 hurdle,hurdles,名詞,上級,1,障害
 hurricane,hurricane,名詞,標準,1,ハリケーン
@@ -15074,11 +15085,13 @@ limp,limping,動詞,上級,1,足を引きずる
 limp,limps,動詞,上級,1,足を引きずる
 line,line,動詞,必須,0,"並ぶ, 並べる"
 line,line,名詞,必須,-1,線
+line,line,名詞,標準,1,<<read between the lines>>行間を読む
 lineage,lineage,名詞,上級,1,系統
 lineage,lineages,名詞,上級,1,系統
 line,lined,動詞,必須,0,"並ぶ, 並べる"
 line,lines,動詞,必須,0,"並ぶ, 並べる"
 line,lines,名詞,必須,-1,線
+line,lines,名詞,標準,1,<<read between the lines>>行間を読む
 lineup,lineup,名詞,標準,1,顔ぶれ
 lineup,lineups,名詞,標準,1,顔ぶれ
 linger,linger,動詞,上級,1,居残る
@@ -16305,14 +16318,14 @@ mood,moods,名詞,基礎,1,気分
 moody,moody,形容詞,上級,1,気分屋の
 moon,moon,名詞,基礎,1,月
 moon,moons,名詞,基礎,1,月
-moral,moral,名詞,基礎,1,教訓
+moral,moral,名詞,基礎,2,教訓
 moral,moral,形容詞,基礎,1,道徳の
 morale,morale,名詞,上級,1,士気
 morale,morales,名詞,上級,1,士気
 morality,moralities,名詞,標準,1,道徳
 morality,morality,名詞,標準,1,道徳
 morally,morally,副詞,標準,1,道徳的に
-moral,morals,名詞,基礎,1,教訓
+moral,morals,名詞,基礎,2,教訓
 moratorium,moratorium,名詞,上級,1,一時停止
 moratorium,moratoriums,名詞,上級,1,一時停止
 morbid,morbid,形容詞,上級,1,病的な
@@ -16810,12 +16823,12 @@ note,notes,動詞,基礎,1,注目する
 note,notes,名詞,基礎,1,メモ
 noteworthy,noteworthy,形容詞,上級,1,注目に値する
 notice,notice,動詞,標準,1,気づく
-notice,notice,名詞,標準,1,通知
+notice,notice,名詞,標準,2,通知
 noticeable,noticeable,形容詞,上級,1,目立つ
 noticeably,noticeably,副詞,上級,1,目立って
 notice,noticed,動詞,標準,1,気づく
 notice,notices,動詞,標準,1,気づく
-notice,notices,名詞,標準,1,通知
+notice,notices,名詞,標準,2,通知
 notice,noticing,動詞,標準,1,気づく
 notification,notification,名詞,上級,1,通知
 notification,notifications,名詞,上級,1,通知
@@ -17274,7 +17287,6 @@ Oriental,Oriental,形容詞,上級,1,東洋の
 orientation,orientation,名詞,標準,1,方向
 orientation,orientations,名詞,標準,1,方向
 orient,oriented,動詞,上級,1,方向づける
-oriented,oriented,形容詞,上級,1,志向の
 oriented,oriented,形容詞,上級,1,志向の
 orient,orienting,動詞,上級,1,方向づける
 orient,orients,動詞,上級,1,方向づける
@@ -21278,13 +21290,13 @@ retrospect,retrospect,名詞,上級,1,回顧
 retrospective,retrospective,形容詞,上級,1,回顧の
 retrospect,retrospects,名詞,上級,1,回顧
 return,return,動詞,基礎,1,戻る
-return,return,名詞,基礎,1,帰還
+return,return,名詞,基礎,2,帰還
 return,returned,動詞,基礎,1,戻る
 returnee,returnee,名詞,修練,1,帰還者
 returnee,returnees,名詞,修練,1,帰還者
 return,returning,動詞,基礎,1,戻る
 return,returns,動詞,基礎,1,戻る
-return,returns,名詞,基礎,1,帰還
+return,returns,名詞,基礎,2,帰還
 reunification,reunification,名詞,上級,1,再統一
 reunification,reunifications,名詞,上級,1,再統一
 reunify,reunified,動詞,修練,1,再統一する
@@ -21436,9 +21448,10 @@ rib,ribs,名詞,上級,1,肋骨
 rich,rich,形容詞,基礎,1,裕福な
 richness,richness,名詞,上級,1,豊かさ
 richness,richnesses,名詞,上級,1,豊かさ
-rid,rid,動詞,標準,1,取り除く
-rid,ridded,動詞,標準,1,取り除く
-rid,ridding,動詞,標準,1,取り除く
+rid,rid,動詞,標準,2,<<rid A of B>>AからBを取り除く
+rid,rid,動詞,標準,1,<<get rid of X>>Xを取り除く
+rid,ridded,動詞,標準,2,<<rid A of B>>AからBを取り除く
+rid,ridding,動詞,標準,2,<<rid A of B>>AからBを取り除く
 riddle,riddle,名詞,上級,1,なぞなぞ
 riddle,riddles,名詞,上級,1,なぞなぞ
 ridicule,ridicule,動詞,上級,1,嘲笑する
@@ -21448,7 +21461,7 @@ ridicule,ridicules,動詞,上級,1,嘲笑する
 ridicule,ridicules,名詞,上級,1,嘲笑
 ridicule,ridiculing,動詞,上級,1,嘲笑する
 ridiculous,ridiculous,形容詞,標準,1,ばかげた
-rid,rids,動詞,標準,1,取り除く
+rid,rids,動詞,標準,2,<<rid A of B>>AからBを取り除く
 rife,rife,形容詞,上級,1,蔓延する
 rifle,rifle,名詞,標準,1,ライフル
 rifle,rifles,名詞,標準,1,ライフル
@@ -21844,6 +21857,8 @@ savor,savoring,動詞,上級,1,味わう
 savor,savors,動詞,上級,1,味わう
 savory,savory,形容詞,上級,1,香ばしい
 savvy,savvy,形容詞,上級,1,精通した
+see,saw,動詞,必須,0,見る
+see,saw,動詞,標準,1,<<see O as C>>OをCだとみなす
 sawmill,sawmill,名詞,上級,1,製材所
 sawmill,sawmills,名詞,上級,1,製材所
 say,say,動詞,必須,0,言う
@@ -22154,7 +22169,7 @@ seduction,seduction,名詞,上級,1,誘惑
 seduction,seductions,名詞,上級,1,誘惑
 seductive,seductive,形容詞,上級,1,誘惑的な
 see,see,動詞,必須,0,見る
-see,seed,動詞,必須,0,見る
+see,see,動詞,標準,1,<<see O as C>>OをCだとみなす
 seed,seed,名詞,標準,1,種
 seedless,seedless,形容詞,上級,1,種なしの
 seedling,seedling,名詞,上級,1,苗木
@@ -22162,6 +22177,7 @@ seedling,seedlings,名詞,上級,1,苗木
 seed,seeds,名詞,標準,1,種
 seedy,seedy,形容詞,上級,1,みすぼらしい
 see,seeing,動詞,必須,0,見る
+see,seeing,動詞,標準,1,<<see O as C>>OをCだとみなす
 seek,seek,動詞,基礎,1,探す
 seek,seeked,動詞,基礎,1,探す
 seeker,seeker,名詞,上級,1,探求者
@@ -22173,7 +22189,10 @@ seem,seemed,動詞,必須,0,〜のようだ
 seem,seeming,動詞,必須,0,〜のようだ
 seemingly,seemingly,副詞,標準,1,一見
 seem,seems,動詞,必須,0,〜のようだ
+see,seen,動詞,必須,0,見る
+see,seen,動詞,標準,1,<<see O as C>>OをCだとみなす
 see,sees,動詞,必須,0,見る
+see,sees,動詞,標準,1,<<see O as C>>OをCだとみなす
 segment,segment,名詞,標準,1,部分
 segmental,segmental,形容詞,修練,1,分節の
 segmentation,segmentation,名詞,上級,1,分割
@@ -23733,6 +23752,8 @@ store,storing,動詞,基礎,1,保管する
 storm,storm,名詞,基礎,1,嵐
 storm,storms,名詞,基礎,1,嵐
 story,story,名詞,必須,0,物語
+storyteller,storyteller,名詞,基礎,1,語り部
+storyteller,storytellers,名詞,基礎,1,語り部
 stout,stout,形容詞,上級,1,頑丈な
 stove,stove,名詞,標準,1,ストーブ
 stove,stoves,名詞,標準,1,ストーブ
@@ -24505,6 +24526,8 @@ table,table,名詞,必須,0,"テーブル, 表"
 table,tables,名詞,必須,0,"テーブル, 表"
 tablet,tablet,名詞,上級,1,タブレット
 tablet,tablets,名詞,上級,1,タブレット
+taboo,taboo,名詞,標準,1,"禁忌, タブー"
+taboo,tabooes,名詞,標準,1,"禁忌, タブー"
 tabulate,tabulate,動詞,修練,1,表にする
 tabulate,tabulated,動詞,修練,1,表にする
 tabulate,tabulates,動詞,修練,1,表にする
@@ -24875,13 +24898,11 @@ thin,thin,形容詞,基礎,1,薄い
 thing,thing,名詞,必須,0,もの
 thing,things,名詞,必須,0,もの
 think,think,動詞,必須,0,考える
-think,think,動詞,標準,1,<<think X over>>Xをよく考える
-think,thinked,動詞,必須,0,考える
-think,thinked,動詞,標準,1,<<think X over>>Xをよく考える
+think,think,動詞,標準,2,<<think X over>>Xをよく考える
 think,thinking,動詞,必須,0,考える
-think,thinking,動詞,標準,1,<<think X over>>Xをよく考える
+think,thinking,動詞,標準,2,<<think X over>>Xをよく考える
 think,thinks,動詞,必須,0,考える
-think,thinks,動詞,標準,1,<<think X over>>Xをよく考える
+think,thinks,動詞,標準,2,<<think X over>>Xをよく考える
 thinner,thinner,形容詞,上級,1,より薄い
 thirst,thirst,名詞,上級,1,渇き
 thirst,thirsts,名詞,上級,1,渇き
@@ -24899,10 +24920,12 @@ thoroughness,thoroughnesses,名詞,上級,1,徹底
 those who,those who,名詞,基礎,1,〜する人々
 though,though,副詞,基礎,1,しかし
 though,though,接続詞,基礎,1,〜だけれども
-thought,thought,名詞,必須,0,"考え, 思考"
+think,thought,動詞,必須,0,考える
+think,thought,動詞,標準,2,<<think X over>>Xをよく考える
+thought,thought,名詞,必須,1,"考え, 思考"
 thoughtful,thoughtful,形容詞,標準,1,思慮深い
 thoughtless,thoughtless,形容詞,上級,1,思いやりのない
-thought,thoughts,名詞,必須,0,"考え, 思考"
+thought,thoughts,名詞,必須,1,"考え, 思考"
 thread,thread,名詞,標準,1,糸
 thread,threads,名詞,標準,1,糸
 threat,threat,名詞,基礎,1,脅威
@@ -26567,10 +26590,13 @@ waylay,waylaying,動詞,修練,1,待ち伏せする
 waylay,waylays,動詞,修練,1,待ち伏せする
 way,ways,名詞,必須,0,"方法, 道, 点"
 wayward,wayward,形容詞,上級,1,気まぐれな
+weak,weak,形容詞,基礎,1,弱い
 weaken,weaken,動詞,上級,1,弱める
 weaken,weakened,動詞,上級,1,弱める
 weaken,weakening,動詞,上級,1,弱める
 weaken,weakens,動詞,上級,1,弱める
+weak,weaker,形容詞,基礎,1,弱い
+weak,weakest,形容詞,基礎,1,弱い
 weakness,weakness,名詞,標準,1,弱さ
 weakness,weaknesses,名詞,標準,1,弱さ
 wealth,wealth,名詞,基礎,1,富

@@ -637,8 +637,8 @@ const isReadingLink = row._type === 'reading' && row.識別名;
 
 ### データ拡充
 - [x] mondai.csv → reading.csv + exam.csv への移行（v4.0で完了）
-- [ ] 識別名にアンダースコア区切り導入（試験IDと大問部分を分離）
-- [ ] 大問IDプレフィックス方式（R/W/L/G）の導入
+- [x] 識別名にアンダースコア区切り導入（試験IDと大問部分を分離、v4.0で完了）
+- [x] 大問IDプレフィックス方式（R/W/L/G）の導入（v4.0で完了）
 
 ---
 
