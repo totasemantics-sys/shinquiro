@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import Header from '@/app/components/Header';
@@ -9,7 +9,7 @@ import { loadCSV } from '@/lib/loadData';
 
 const REGIONS = ['北海道', '東北', '北関東', '南関東', '甲信越', '北陸', '東海', '関西', '中国', '四国', '九州・沖縄'];
 
-export default function UnilistPage() {
+function UnilistPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('univ'); // 'univ' | 'other'
@@ -230,3 +230,5 @@ export default function UnilistPage() {
     </div>
   );
 }
+
+export default function UnilistPage() { return <Suspense><UnilistPageInner /></Suspense>; }

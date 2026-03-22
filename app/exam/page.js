@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { ExternalLink, Search, BookOpen, Clock } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
@@ -98,7 +98,7 @@ const parsePresence = (val) =>
   (val === 'あり' || val === 'なし') ? val : 'どちらでも';
 
 // ─── メインコンポーネント ──────────────────────────────────
-export default function ExamPage() {
+function ExamPageInner() {
   const searchParams = useSearchParams();
 
   // URLパラメータから初期値を決定
@@ -915,3 +915,5 @@ export default function ExamPage() {
     </div>
   );
 }
+
+export default function ExamPage() { return <Suspense><ExamPageInner /></Suspense>; }

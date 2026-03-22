@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Search, Info, ChevronUp, ChevronDown, Filter, ExternalLink } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
@@ -12,7 +12,7 @@ import { loadWordMasterData, getWordInfoGrouped } from '@/lib/loadWordMasterData
 import { loadTangochoMasterData, getAmazonLinkByBookName } from '@/lib/loadTangochoMasterData';
 import { parseIdiomNotation } from '@/lib/parseIdiomNotation';
 
-export default function WordSearch() {
+function WordSearchInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [wordData, setWordData] = useState([]);
@@ -2385,3 +2385,4 @@ export default function WordSearch() {
     </div>
   );
 }
+export default function WordSearch() { return <Suspense><WordSearchInner /></Suspense>; }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, Home, Clock, ExternalLink, Calendar, Tag, FileText } from 'lucide-react';
@@ -15,7 +15,7 @@ import { loadArticlesData, getArticleImagePath } from '@/lib/loadArticlesData';
 import Header from '@/app/components/Header';
 import Footer from '@/app/components/Footer';
 
-export default function UniversityPage({ params }) {
+function UniversityPageInner({ params }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('exam'); // 'exam' | 'reading' | 'words' | 'info'
@@ -1578,3 +1578,4 @@ export default function UniversityPage({ params }) {
     </>
   );
 }
+export default function UniversityPage({ params }) { return <Suspense><UniversityPageInner params={params} /></Suspense>; }
