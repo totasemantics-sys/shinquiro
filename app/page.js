@@ -7,7 +7,6 @@ import { Search, BookOpen, Sparkles, X, ChevronRight } from 'lucide-react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { loadKeywordData } from '@/lib/loadKeywordData';
-import { loadWordMasterData, getWordInfoGrouped } from '@/lib/loadWordMasterData';
 import { loadWordData, searchWord } from '@/lib/loadWordData';
 import { loadTangochoMasterData, getAmazonLinkByBookName } from '@/lib/loadTangochoMasterData';
 import { loadAllData } from '@/lib/loadData';
@@ -35,8 +34,6 @@ export default function Home() {
   // ── 今日の難単語
   const [dailyWord,          setDailyWord]          = useState(null);
   const [showDailyWordModal, setShowDailyWordModal]  = useState(false);
-  const [keywords,           setKeywords]            = useState([]);
-  const [wordMaster,         setWordMaster]          = useState([]);
   const [wordData,           setWordData]            = useState([]);
   const [tangochoMaster,     setTangochoMaster]      = useState([]);
   const [mondaiData,         setMondaiData]          = useState([]);
@@ -76,25 +73,28 @@ export default function Home() {
     async function load() {
       try {
         const kw = await loadKeywordData();
-        setKeywords(kw);
 
-        const hardWords = [];
-        const seen = new Set();
+        // 「原形＋意味」の組み合わせでユニーク化した候補リストを構築
+        const hardWordsMap = new Map();
         kw.forEach(row => {
-          if ((row.レベル === '修練' || row.レベル === '上級') && row.単語 && !seen.has(row.単語)) {
-            seen.add(row.単語);
-            hardWords.push(row);
+          if ((row.レベル === '修練' || row.レベル === '上級') && row.単語 && row.意味) {
+            const key = `${row.単語}__${row.意味}`;
+            if (!hardWordsMap.has(key)) {
+              hardWordsMap.set(key, { 単語: row.単語, 品詞: row.品詞 || '', 意味: row.意味, 大問IDs: [] });
+            }
+            if (row.大問ID && !hardWordsMap.get(key).大問IDs.includes(row.大問ID)) {
+              hardWordsMap.get(key).大問IDs.push(row.大問ID);
+            }
           }
         });
+        const hardWords = [...hardWordsMap.values()];
         if (hardWords.length > 0) setDailyWord(getDailyWord(hardWords));
 
-        const [wm, wd, tm, allData] = await Promise.all([
-          loadWordMasterData(),
+        const [wd, tm, allData] = await Promise.all([
           loadWordData(),
           loadTangochoMasterData(),
           loadAllData(),
         ]);
-        setWordMaster(wm);
         setWordData(wd);
         setTangochoMaster(tm);
         setMondaiData(allData.reading);
@@ -173,17 +173,6 @@ export default function Home() {
   };
 
   // ── 今日の難単語モーダル用ヘルパー
-  const getGroupedMeanings = (word) => {
-    if (!word || !wordMaster.length) return new Map();
-    const groups = new Map();
-    getWordInfoGrouped(wordMaster, word).forEach(info => {
-      const pos = info.品詞 || 'その他';
-      if (!groups.has(pos)) groups.set(pos, []);
-      groups.get(pos).push(info);
-    });
-    return groups;
-  };
-
   const getBookStatuses = (word) => {
     if (!word || !wordData.length) return [];
     return searchWord(wordData, word).map(r => {
@@ -196,21 +185,14 @@ export default function Home() {
     });
   };
 
-  const getDailyWordSource = (word) => {
-    if (!word || !keywords.length || !mondaiData.length) return null;
-    const list = [...new Set(keywords.filter(k => k.単語 === word).map(k => k.大問ID))]
-      .map(id => mondaiData.find(m => m.大問ID === id)).filter(Boolean);
+  const getDailyWordSource = (entry) => {
+    if (!entry || !mondaiData.length) return null;
+    const list = entry.大問IDs.map(id => mondaiData.find(m => m.大問ID === id)).filter(Boolean);
     if (!list.length) return null;
     list.sort((a, b) => parseInt(b.年度) - parseInt(a.年度) || a.大問ID.localeCompare(b.大問ID));
     const top = list[0];
     const label = `${top.年度} ${top.大学名} ${top.学部}`;
     return list.length >= 2 ? `${label} など` : label;
-  };
-
-  const getAppearingMondai = (word) => {
-    if (!word || !keywords.length || !mondaiData.length) return [];
-    return [...new Set(keywords.filter(k => k.単語 === word).map(k => k.大問ID))]
-      .map(id => mondaiData.find(m => m.大問ID === id)).filter(Boolean);
   };
 
   // ── スタイル定数
@@ -237,9 +219,12 @@ export default function Home() {
               <span className="text-sm text-gray-400 flex-1">読み込み中...</span>
             ) : dailyWord ? (
               <div className="flex flex-col flex-1 min-w-0 items-center">
-                <span className="text-xl font-bold text-gray-800">{dailyWord.単語}</span>
                 {(() => {
-                  const src = getDailyWordSource(dailyWord.単語);
+                  const pm = parseIdiomNotation(dailyWord.意味);
+                  return <span className="text-xl font-bold text-gray-800">{pm.isIdiom ? pm.displayWord : dailyWord.単語}</span>;
+                })()}
+                {(() => {
+                  const src = getDailyWordSource(dailyWord);
                   return src ? <span className="text-xs text-gray-400 mt-0.5">{src}</span> : null;
                 })()}
               </div>
@@ -596,7 +581,10 @@ export default function Home() {
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b bg-emerald-50">
               <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-gray-900">{dailyWord.単語}</h3>
+                {(() => {
+                  const pm = parseIdiomNotation(dailyWord.意味);
+                  return <h3 className="text-2xl font-bold text-gray-900">{pm.isIdiom ? pm.displayWord : dailyWord.単語}</h3>;
+                })()}
                 <button onClick={() => setShowDailyWordModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                   <X className="w-6 h-6" />
                 </button>
@@ -606,31 +594,18 @@ export default function Home() {
             <div className="p-6 overflow-y-auto flex-1">
               {/* 品詞と意味 */}
               {(() => {
-                const groups = getGroupedMeanings(dailyWord.単語);
-                if (groups.size === 0) return null;
+                const pm = parseIdiomNotation(dailyWord.意味);
                 return (
                   <div className="mb-6">
                     <div className="space-y-3">
-                      {[...groups.entries()].map(([pos, meanings], i) => (
-                        <div key={i} className="p-3 rounded-lg bg-gray-50 border border-gray-200">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-semibold text-white bg-emerald-600 px-2 py-0.5 rounded">{pos}</span>
-                            {meanings[0]?.レベル && <span className="text-xs text-gray-400">{meanings[0].レベル}</span>}
-                          </div>
-                          <div className="text-base text-gray-800">
-                            {meanings.map((m, j) => {
-                              const pm = parseIdiomNotation(m.意味);
-                              return (
-                                <span key={j}>
-                                  {j > 0 && <span className="text-gray-300 mx-1">/</span>}
-                                  {pm.isIdiom && <span className="text-gray-500 italic mr-1 text-sm">{pm.displayWord}:</span>}
-                                  <span>{pm.displayMeaning}</span>
-                                </span>
-                              );
-                            })}
-                          </div>
+                      <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-semibold text-white bg-emerald-600 px-2 py-0.5 rounded">{dailyWord.品詞 || 'その他'}</span>
                         </div>
-                      ))}
+                        <div className="text-base text-gray-800">
+                          <span>{pm.displayMeaning}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -638,7 +613,10 @@ export default function Home() {
 
               {/* 出現した大問 */}
               {(() => {
-                const list = getAppearingMondai(dailyWord.単語);
+                if (!dailyWord.大問IDs.length || !mondaiData.length) return null;
+                const list = dailyWord.大問IDs
+                  .map(id => mondaiData.find(m => m.大問ID === id)).filter(Boolean)
+                  .sort((a, b) => parseInt(b.年度) - parseInt(a.年度));
                 if (!list.length) return null;
                 return (
                   <div className="mb-6">
