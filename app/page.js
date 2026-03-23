@@ -209,7 +209,7 @@ export default function Home() {
         <div className="bg-white rounded-xl shadow-md px-6 py-4 max-w-[450px] mx-auto">
           <div className="flex items-center gap-4">
             {/* 左: ラベル + 単語 + 出典（縦積み） */}
-            <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+            <div className="flex flex-col flex-1 min-w-0 gap-0.5 items-center">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
                   <Sparkles className="w-5 h-5 text-amber-600" />
