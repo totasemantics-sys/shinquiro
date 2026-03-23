@@ -641,7 +641,7 @@ export default function Home() {
                 if (!statuses.length) return null;
                 return (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">「{dailyWord.単語}」の単語帳掲載状況</h4>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">"{dailyWord.単語}" の単語帳掲載状況</h4>
                     <div className="text-sm text-gray-700 space-y-1">
                       {statuses.map((item, idx) => {
                         const amazonLink = getAmazonLinkByBookName(tangochoMaster, item.book);
