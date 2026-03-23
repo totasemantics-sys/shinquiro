@@ -207,34 +207,34 @@ export default function Home() {
 
         {/* ═══ 今日の難単語（横長） ═══ */}
         <div className="bg-white rounded-xl shadow-md px-6 py-4 max-w-[450px] mx-auto">
-          <div className="flex flex-col items-center gap-2 md:flex-row md:gap-4">
-            {/* アイコン + ラベル */}
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
-                <Sparkles className="w-5 h-5 text-amber-600" />
+          <div className="flex items-center gap-4">
+            {/* 左: ラベル + 単語 + 出典（縦積み） */}
+            <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-amber-600" />
+                </div>
+                <span className="font-semibold text-gray-700 text-sm whitespace-nowrap">今日の難単語</span>
               </div>
-              <span className="font-semibold text-gray-700 text-sm whitespace-nowrap">今日の難単語</span>
+              {loading ? (
+                <span className="text-sm text-gray-400">読み込み中...</span>
+              ) : dailyWord ? (
+                <>
+                  {(() => {
+                    const pm = parseIdiomNotation(dailyWord.意味);
+                    return <span className="text-xl font-bold text-gray-800">{pm.isIdiom ? pm.displayWord : dailyWord.単語}</span>;
+                  })()}
+                  {(() => {
+                    const src = getDailyWordSource(dailyWord);
+                    return src ? <span className="text-xs text-gray-400">{src}</span> : null;
+                  })()}
+                </>
+              ) : (
+                <span className="text-sm text-gray-400">データを取得できませんでした</span>
+              )}
             </div>
 
-            {/* 単語 + 出典 */}
-            {loading ? (
-              <span className="text-sm text-gray-400 md:flex-1">読み込み中...</span>
-            ) : dailyWord ? (
-              <div className="flex flex-col items-center md:flex-1 md:min-w-0">
-                {(() => {
-                  const pm = parseIdiomNotation(dailyWord.意味);
-                  return <span className="text-xl font-bold text-gray-800 text-center">{pm.isIdiom ? pm.displayWord : dailyWord.単語}</span>;
-                })()}
-                {(() => {
-                  const src = getDailyWordSource(dailyWord);
-                  return src ? <span className="text-xs text-gray-400 mt-0.5 text-center">{src}</span> : null;
-                })()}
-              </div>
-            ) : (
-              <span className="text-sm text-gray-400 md:flex-1">データを取得できませんでした</span>
-            )}
-
-            {/* ボタン */}
+            {/* 右: ボタン */}
             {dailyWord && !loading && (
               <button
                 onClick={() => setShowDailyWordModal(true)}
