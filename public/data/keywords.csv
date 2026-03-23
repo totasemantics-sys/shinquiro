@@ -338,7 +338,7 @@ R4,,voluntary,形容詞,標準,自発的な
 R4,,warn,動詞,標準,警告する
 R4,,wonder,動詞,基礎,疑問に思う
 R4,,wonderful,形容詞,基礎,素晴らしい
-R5,,alert,形容詞,標準,用心深い
+R5,12,alert,形容詞,標準,用心深い
 R5,,ancient,形容詞,基礎,古代の
 R5,,apparent,形容詞,基礎,明白な
 R5,,appear,動詞,基礎,現れる
@@ -357,13 +357,13 @@ R5,,essentially,副詞,基礎,本質的に
 R5,,excite,動詞,上級,興奮させる
 R5,,expression,名詞,基礎,表現
 R5,,figure,名詞,修練,<<figure of speech>>比喩表現
-R5,,figure,動詞,基礎,<<figure out>> 理解する 
+R5,13,figure,動詞,基礎,<<figure out>> 理解する 
 R5,,forbid,動詞,上級,禁じる
 R5,,form,動詞,基礎,形成する
 R5,,frustrated,形容詞,標準,"不満な, いらだった"
 R5,,gathering,名詞,基礎,集まり
 R5,,generation,名詞,基礎,世代
-R5,,get,動詞,標準,<<get it>>理解する
+R5,12,get,動詞,標準,<<get it>>理解する
 R5,,gradually,副詞,標準,徐々に
 R5,,hidden,形容詞,標準,隠された
 R5,,hunt,名詞,基礎,狩り
@@ -382,17 +382,17 @@ R5,,prohibit,動詞,上級,禁止する
 R5,,realize,動詞,基礎,実現する
 R5,,recognize,動詞,基礎,認識する
 R5,,return,動詞,基礎,戻る
-R5,,rid,動詞,標準,<<rid A of B>>AからBを取り除く
+R5,13,rid,動詞,標準,<<rid A of B>>AからBを取り除く
 R5,,skillfully,副詞,上級,巧みに
 R5,,soften,動詞,上級,和らげる
 R5,,speech,名詞,基礎,演説
 R5,,storyteller,名詞,基礎,語り部
 R5,,succeed,動詞,標準,成功する
 R5,,taboo,名詞,標準,"禁忌, タブー"
-R5,,tale,名詞,標準,物語
-R5,,trap,動詞,標準,わなにかける
+R5,13,tale,名詞,標準,物語
+R5,13,trap,動詞,標準,わなにかける
 R5,,unusual,形容詞,基礎,珍しい
-R5,,vicious,形容詞,標準,悪意のある
+R5,13,vicious,形容詞,標準,悪意のある
 R6,,abstain,動詞,上級,控える
 R6,,addition,名詞,標準,追加
 R6,,advantage,名詞,基礎,利点
