@@ -7,6 +7,7 @@ import { Search, BookOpen, Sparkles, X, ChevronRight } from 'lucide-react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import { loadKeywordData } from '@/lib/loadKeywordData';
+import { loadWordMasterData } from '@/lib/loadWordMasterData';
 import { loadWordData, searchWord } from '@/lib/loadWordData';
 import { loadTangochoMasterData, getAmazonLinkByBookName } from '@/lib/loadTangochoMasterData';
 import { loadAllData } from '@/lib/loadData';
@@ -34,6 +35,7 @@ export default function Home() {
   // ── 今日の難単語
   const [dailyWord,          setDailyWord]          = useState(null);
   const [showDailyWordModal, setShowDailyWordModal]  = useState(false);
+  const [wordMaster,         setWordMaster]          = useState([]);
   const [wordData,           setWordData]            = useState([]);
   const [tangochoMaster,     setTangochoMaster]      = useState([]);
   const [mondaiData,         setMondaiData]          = useState([]);
@@ -90,11 +92,13 @@ export default function Home() {
         const hardWords = [...hardWordsMap.values()];
         if (hardWords.length > 0) setDailyWord(getDailyWord(hardWords));
 
-        const [wd, tm, allData] = await Promise.all([
+        const [wm, wd, tm, allData] = await Promise.all([
+          loadWordMasterData(),
           loadWordData(),
           loadTangochoMasterData(),
           loadAllData(),
         ]);
+        setWordMaster(wm);
         setWordData(wd);
         setTangochoMaster(tm);
         setMondaiData(allData.reading);
@@ -623,7 +627,7 @@ export default function Home() {
                 if (!list.length) return null;
                 return (
                   <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3">出現した大問</h4>
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">この意味で出現した大問</h4>
                     <div className="space-y-2">
                       {list.map((m, idx) => (
                         <Link key={idx} href={`/mondai/${m.識別名}`}
@@ -632,6 +636,50 @@ export default function Home() {
                         >
                           <div className="text-sm font-medium text-gray-900">{m.年度} {m.大学名} {m.学部} {m.大問名}</div>
                         </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 他の用法 */}
+              {(() => {
+                if (!wordMaster.length) return null;
+                const currentPm = parseIdiomNotation(dailyWord.意味);
+                const others = wordMaster
+                  .filter(w => w.原形 === dailyWord.単語)
+                  .filter(w => {
+                    const wpm = parseIdiomNotation(w.意味);
+                    return !(w.品詞 === dailyWord.品詞 && wpm.displayMeaning === currentPm.displayMeaning);
+                  })
+                  .sort((a, b) => (parseInt(a.優先度) || 999) - (parseInt(b.優先度) || 999));
+                if (!others.length) return null;
+                const groups = new Map();
+                others.forEach(w => {
+                  const pos = w.品詞 || 'その他';
+                  if (!groups.has(pos)) groups.set(pos, []);
+                  groups.get(pos).push(w);
+                });
+                return (
+                  <div className="mb-6">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">他の用法</h4>
+                    <div className="space-y-2">
+                      {[...groups.entries()].map(([pos, items], i) => (
+                        <div key={i} className="flex items-start gap-2">
+                          <span className="text-xs font-semibold text-white bg-gray-400 px-2 py-0.5 rounded shrink-0 mt-0.5">{pos}</span>
+                          <span className="text-sm text-gray-700">
+                            {items.map((w, j) => {
+                              const wpm = parseIdiomNotation(w.意味);
+                              return (
+                                <span key={j}>
+                                  {j > 0 && <span className="text-gray-300 mx-1">/</span>}
+                                  {wpm.isIdiom && <span className="italic text-gray-400 text-xs mr-1">{wpm.displayWord}:</span>}
+                                  {wpm.displayMeaning}
+                                </span>
+                              );
+                            })}
+                          </span>
+                        </div>
                       ))}
                     </div>
                   </div>
